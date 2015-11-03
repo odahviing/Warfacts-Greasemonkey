@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name        IntelligenceAutoSetup 
-// @namespace   Odahviing
-// @description Auto set values on the intelligence page for good planets, for now its hard-coded
-// @include     *.war-facts.com/intelligence.php
-// @include     *.war-facts.com/empire_known_universe.php
+// @namespace   Cohanman.Resources
+// @include     http://*.war-facts.com/intelligence.php
+// @include     http://*.war-facts.com/empire_known_universe.php
+// @description Small script to auto-chose settings for AR planets
 // @version     1
 // @grant       none
 // ==/UserScript==

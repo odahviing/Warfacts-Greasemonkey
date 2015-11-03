@@ -2,6 +2,7 @@
 // @name        Warpnet Namer
 // @namespace   Cohenman.Resources
 // @include     http://www.war-facts.com/warpnet.php
+// @description Warpnet name organizer to auto name and auto set warpnet routes by name
 // @version     1
 // @grant       none
 // ==/UserScript==
