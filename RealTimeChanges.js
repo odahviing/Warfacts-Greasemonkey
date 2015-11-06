@@ -1,11 +1,14 @@
 // ==UserScript==
-// @name        Real Time Changer
-// @namespace   Cohenman.Resources
+// @name        Game to Real Time Changer
+// @description Add ETA in real time for fleet arrival
+// @namespace   bitbucket.org/Odahviing
 // @match       http://*.war-facts.com/fleet.php*
 // @match       http://*.war-facts.com/overview.php?view=2
-// @version     1
+// @version     1.0
 // @grant       none
 // ==/UserScript==
+
+// Version 1.0 - Intial Script
 
 function calcTime(text){
   var splitText = text.split(" ");
