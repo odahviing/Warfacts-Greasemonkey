@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name        IntelligenceAutoSetup 
-// @namespace   Cohanman.Resources
+// @namespace   bitbucket.org/Odahviing
 // @include     http://*.war-facts.com/intelligence.php
 // @include     http://*.war-facts.com/empire_known_universe.php
-// @description Small script to auto-chose settings for AR planets
-// @version     1
+// @description Small script that auto-choose planet AR settings at the intelligence page
+// @version     1.0
 // @grant       none
 // ==/UserScript==
 
+// Version 1.0 - Just the basic thing needed
 
 $('[name=habit]').val(50);
 $('[name=landmass]').val(35000000000);
