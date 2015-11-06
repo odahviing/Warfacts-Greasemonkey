@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name        Corruption Adder
-// @namespace   Cohenman.Resources
-// @description Just a little twick
+// @namespace   bitbucket.org/Odahviing
+// @description And the current corruption number, even if it is negative
 // @include     http://www.war-facts.com/overview.php?view=1
-// @version     1
+// @version     1.0
 // @grant       none
 // ==/UserScript==
 
+// Version 1.0 - Initial Version
 
 function getCurrentCorruption()
 {
