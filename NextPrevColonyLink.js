@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name           Next & Prev Colony Link
-// @description		 Add prev/next linkes to colony view page
-// @namespace      Cohenman.Resources
+// @description	   Add prev/next links to main colony view page
+// @namespace      bitbucket.org/Odahviing
+// @version		   1.0
 // @include        *.war-facts.com/view_colony.php*
 // ==/UserScript==
 
@@ -24,7 +25,7 @@ function getPrevAndNext(currentColonyNumber){
 	
 	for (var index = 0; index < allColonies.length; index ++)
 	{
-  	var currentValue = getQueryString(allColonies[index].href);	
+  		var currentValue = getQueryString(allColonies[index].href);	
 		if (currentColonyNumber == currentValue)
 		{
 				if (index == 0)
