@@ -13,7 +13,6 @@
 // Version 1.0 - Support on blueprint trade and ship design trade, not best implemented, will make it better in the future (use same button)
 // Version 1.1 - Integrated the two buttons to one, still need better response message
 
-Big Change!!
 /* Settings */
 var ButtonName = "buttonGM";
 var PlayerSettings = "Player";
