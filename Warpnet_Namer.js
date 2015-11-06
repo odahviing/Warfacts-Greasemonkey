@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name        Warpnet Namer
-// @namespace   Cohenman.Resources
+// @namespace   bitbucket.org/Odahviing
 // @include     http://www.war-facts.com/warpnet.php
-// @description Warpnet name organizer to auto name and auto set warpnet routes by name
-// @version     1
+// @description Auto name warpnets and submit to rally points manager
+// @version     1.0
 // @grant       none
 // ==/UserScript==
 
