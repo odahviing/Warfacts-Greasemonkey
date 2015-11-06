@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Starlog Group Sender
-// @namespace   Cohenman.Resources
+// @namespace   bitbucket.org/Odahviing
 // @include     http://www.war-facts.com/player.php
 // @include     http://www.war-facts.com/bptrade.php?*
 // @include     http://www.war-facts.com/sdtrade.php?*
@@ -152,6 +152,5 @@ function main()
      addGroupsOptions(ShipDesignSendSelect);
    }  
 }
-
 
 main();
