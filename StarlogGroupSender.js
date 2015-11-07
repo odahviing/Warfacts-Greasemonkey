@@ -15,7 +15,7 @@
 
 /* Settings */
 var ButtonName = "buttonGM";
-var PlayerSettings = "Player";
+var PlayerSettings = "player";
 var BlueprintSendName = "bptrade";
 var BlueprintSendSelect = "bpplayer";
 var ShipDesignSendName = "sdtrade";
