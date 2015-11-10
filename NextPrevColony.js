@@ -53,7 +53,7 @@ function buyMalls(people, malled)
 	
 	colonyId = colonyId.replace("colony=","");
 	var missing = people - malled;
-	var toBuy = Math.ceil(missing / effMall * 40) + 2;
+	var toBuy = Math.max(1, Math.ceil(missing / effMall * 40) + 1);
 	baseParams = baseParams + "&buildid=" + mallId + "&colony=" + colonyId + "&amount=" + toBuy;
   xhttp = new XMLHttpRequest();
 	xhttp.open("POST", "build_facility.php", true);
