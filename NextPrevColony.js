@@ -2,14 +2,15 @@
 // @name           Colony Helper
 // @description	   Add prev/next links to main colony view page + Mall to buy button
 // @namespace      bitbucket.org/Odahviing
-// @version		     1.2
+// @version		     1.3
 // @include        *.war-facts.com/view_colony.php*
 // ==/UserScript==
 
 // Version history:
 // 1.0	Initial Basic Version
 // 1.1  Add warning in colony page for lack in malls
-// 1.2  Add the ability to buy malls from mail page
+// 1.2  Add the ability to buy malls from mail page (inner settings for mall)
+// 1.3  Some Bug Fix
 
 var checkMall = true;
 var mallId = 11694;
@@ -53,7 +54,7 @@ function buyMalls(people, malled)
 	
 	colonyId = colonyId.replace("colony=","");
 	var missing = people - malled;
-	var toBuy = Math.max(1, Math.ceil(missing / effMall * 40) + 1);
+	var toBuy = Math.ceil(missing / effMall * 40);
 	baseParams = baseParams + "&buildid=" + mallId + "&colony=" + colonyId + "&amount=" + toBuy;
   xhttp = new XMLHttpRequest();
 	xhttp.open("POST", "build_facility.php", true);
@@ -84,7 +85,7 @@ function main()
 		{
 			allBoxes[5].innerHTML = "<font color='red'>" + allBoxes[5].innerHTML + "</font><input type='button' id='mallbutton' value='buy'>";
 			var mainbutton = document.getElementById('mallbutton');
-			mainbutton.addEventListener("click", function(){buyMalls(finalPop, finalMalled)}, false);
+			mainbutton.addEventListener("click", function(){buyMalls(finalPop * 1.1, finalMalled)}, false);
 		}
 	}
 }
