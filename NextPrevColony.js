@@ -2,7 +2,7 @@
 // @name           Colony Helper
 // @description	   Add prev/next links to main colony view page + Mall to buy button
 // @namespace      bitbucket.org/Odahviing
-// @version		     1.3
+// @version		     1.31
 // @include        *.war-facts.com/view_colony.php*
 // ==/UserScript==
 
@@ -11,10 +11,12 @@
 // 1.1  Add warning in colony page for lack in malls
 // 1.2  Add the ability to buy malls from mail page (inner settings for mall)
 // 1.3  Some Bug Fix
+// 1.3x Mall Change
 
 var checkMall = true;
-var mallId = 11694;
-var effMall = 230.08;
+var mallId = 12584;
+var people = 36;
+var eff = 794;
 
 function getQueryString(colonyURL){
 	
@@ -54,6 +56,7 @@ function buyMalls(people, malled)
 	
 	colonyId = colonyId.replace("colony=","");
 	var missing = people - malled;
+        var effMall = people * (eff / 100);
 	var toBuy = Math.ceil(missing / effMall * 40);
 	baseParams = baseParams + "&buildid=" + mallId + "&colony=" + colonyId + "&amount=" + toBuy;
   xhttp = new XMLHttpRequest();
