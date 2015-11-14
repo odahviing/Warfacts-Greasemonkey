@@ -10,6 +10,8 @@
 
 // Features So Far
 // --- Ability to filter with "player" messages only
+// --- Ability to remote regular messages in the new starlog group
+
 
 
 function loadPlayerMessages()
