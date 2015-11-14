@@ -2,7 +2,7 @@
 // @name        Starlog Manager
 // @namespace   bitbucket.org/Odahviing
 // @include     http://www.war-facts.com/starlog.php*
-// @version     1.0
+// @version     1.1
 // @grant       none
 // ==/UserScript==
 
@@ -10,6 +10,7 @@
 
 // Features So Far
 // --- Ability to filter with "player" messages only
+// --- Add realtime date to all the messages
 // --- Ability to remote regular messages in the new starlog group
 
 
