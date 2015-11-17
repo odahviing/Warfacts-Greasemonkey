@@ -67,7 +67,11 @@ if (checkMall == true)
 
 if (checkFarm == true)
 {
-  var link = "/extras/colony_res.php?colony=" + ColonyId;
+	var tempHolder = mainDataBlock[16].innerHTML;
+	var currentFood = tempHolder.substring(tempHolder.indexOf("</a>") + 4, tempHolder.indexOf("<span>")).replace(",", "").trim();
+	if (population * 2 < currentFood) return;
+	
+    var link = "/extras/colony_res.php?colony=" + ColonyId;
 	var div = document.createElement('div');
 	div.innerHTML = sendAjaxRequest("GET", link, false, true, "");
   
@@ -80,8 +84,6 @@ if (checkFarm == true)
 	if (resourcesGap > 0)
 	{
 		 // Just making sure I don't have to much
-		var tempHolder = mainDataBlock[16].innerHTML;
-		var currentFood = tempHolder.substring(tempHolder.indexOf("</a>") + 4, tempHolder.indexOf("<span>")).replace(",", "").trim();
 		if (currentFood < (population /10 - currentProduction) * 60)
 		{
 			mainDataBlock[16].innerHTML = "<font color='red'>" + mainDataBlock[16].innerHTML + "</font><input type='button' id='farmbutton' value='buy'>";
