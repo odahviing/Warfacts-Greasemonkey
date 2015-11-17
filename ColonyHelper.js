@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Colony Helper
-// @description	   Add prev/next links to main colony view page + Mall to buy button
+// @description	   Add Farm/Mall buttons if need to buy, also prev/next button to fast zipping
 // @namespace      bitbucket.org/Odahviing
 // @version		     2.0
 // @include        *.war-facts.com/view_colony.php*
