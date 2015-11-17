@@ -28,12 +28,12 @@ var multi = 1.1; // How much I want more then I need
 
 /* Prints Id */
 var mallId = 12584;
-var peopleMall = 36;
-var effMall = 794;
+var peopleMall = ; // Workers
+var effMall = ; // aka 731 (no need to %)
 // --- //
 var farmId = 12865;
-var peopleFarm = 32;
-var effFarm = 701;
+var peopleFarm = ; // Workers
+var effFarm = ; // aka 731 (no need to %)
 
 /* Basic Actions & Button Setup */
 
