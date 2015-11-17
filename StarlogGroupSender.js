@@ -5,13 +5,14 @@
 // @include     http://www.war-facts.com/bptrade.php?*
 // @include     http://www.war-facts.com/sdtrade.php?*
 // @description Add the ability to send blueprints (from any kind) to starlog groups
-// @version     1.1
+// @version     1.11
 // @grant       GM_getValue
 // @grant       GM_setValue
 // ==/UserScript==
 
-// Version 1.0 - Support on blueprint trade and ship design trade, not best implemented, will make it better in the future (use same button)
-// Version 1.1 - Integrated the two buttons to one, still need better response message
+// Version 1.0  - Support on blueprint trade and ship design trade, not best implemented, will make it better in the future (use same button)
+// Version 1.1  - Integrated the two buttons to one, still need better response message
+// Version 1.11 - Bug fix - send ship design didn't work
 
 /* Settings */
 var ButtonName = "buttonGM";
@@ -26,12 +27,13 @@ function saveGroups()
 {
   var groupsNames = document.getElementsByName('editstarloggroupname');
   var groupsId = document.getElementsByName('editstarloggroup');
-  var arrayList = []
+  
+  var arrayList = [];
   for (var index = 0 ; index < groupsId.length; index ++)
   {
     var singleArray = [groupsId[index].value, groupsNames[index].value];
     var playersList = document.getElementById("starloggroup" + groupsId[index].value);
-    
+  
     var playersSpan = playersList.getElementsByTagName('span');
     for (var sIndex = 0; sIndex < playersSpan.length; sIndex ++)
     {
@@ -95,10 +97,11 @@ function getInputValues(form, page)
 
 function sendToGroup(page, selector)
 {
+  
   var loadedData = GM_getValue("stargroupId");  
   var select = document.getElementsByName(selector);
   var regForm = document.getElementsByTagName('form');
-
+   
   var groupId = select[0].value;
   var neededIndex = -1;
   for (var index = 0; index < loadedData.length; index ++)
@@ -148,7 +151,7 @@ function main()
    }
    else if (page.includes(ShipDesignSendName))
    {
-     changeButton(ShipDesignSendName, ShipDesignSendName);
+     changeButton(ShipDesignSendName, ShipDesignSendSelect);
      addGroupsOptions(ShipDesignSendSelect);
    }  
 }
