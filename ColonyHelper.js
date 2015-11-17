@@ -2,7 +2,7 @@
 // @name           Colony Helper
 // @description	   Add Farm/Mall buttons if need to buy, also prev/next button to fast zipping
 // @namespace      bitbucket.org/Odahviing
-// @version		     2.0
+// @version		   2.1
 // @include        *.war-facts.com/view_colony.php*
 // @grant          GM_getValue
 // @grant          GM_setValue
@@ -15,6 +15,7 @@
 // 1.3  Some Bug Fix
 // 1.3x Mall Change
 // 2.0  Add farm Option / Redesign Script
+// 2.1  Add warning if no input has been given
 
 var ColonyId = getQueryString(document.URL);
 
@@ -28,12 +29,12 @@ var multi = 1.1; // How much I want more then I need
 
 /* Prints Id */
 var mallId = 12584;
-var peopleMall = ; // Workers
-var effMall = ; // aka 731 (no need to %)
+var peopleMall = 0;
+var effMall = 0;
 // --- //
 var farmId = 12865;
-var peopleFarm = ; // Workers
-var effFarm = ; // aka 731 (no need to %)
+var peopleFarm = 0;
+var effFarm = 0;
 
 /* Basic Actions & Button Setup */
 
