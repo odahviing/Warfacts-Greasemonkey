@@ -50,6 +50,11 @@ if (addPrevNext == true)
 
 if (isOneBuyerActive() == false) return;
 
+if (peopleMall * peopleFarm == 0)
+{
+    alert("You didn't update script settings for best blueprints, stopping..");
+	return;
+}
 var mainDataBlock = document.getElementsByClassName('light padding5 tbborder');
 var population = parseInt(mainDataBlock[0].innerHTML.split(" ")[0].replace("Population:", "").replace(',',''));
 var mallEffective = peopleMall * effMall / 100;
