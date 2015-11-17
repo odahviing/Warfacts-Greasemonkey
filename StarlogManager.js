@@ -4,28 +4,38 @@
 // @include     http://www.war-facts.com/starlog.php*
 // @version     1.1
 // @grant       none
+// @description Starlog addon
 // ==/UserScript==
 
 // Version 1.0 - Inital Script - Player filter + Real Time
+// Version 1.1 - Minor Changes on menus
 
 // Features So Far
 // --- Ability to filter with "player" messages only
-// --- Add realtime date to all the messages
-// --- Ability to remote regular messages in the new starlog group
-
 
 
 function loadPlayerMessages()
 {
+ 
+  // Make Player button
   var newLink = document.createElement('a');
   newLink.setAttribute('class', "darkbutton smalltext");
   newLink.innerHTML = "Player";
   newLink.addEventListener("click", loadOnlyPlayer);
- 
+  
+  // Add it
   var linksObject = document.getElementsByClassName('left starlog_right box dark padding5 minheight60')[0];
   linksObject.insertBefore(newLink, linksObject.firstChild);
+
+  var outbox  = linksObject.children[3];
+  linksObject.insertBefore(outbox, null);
+  outbox = linksObject.children[3];
+  linksObject.insertBefore(outbox, null);
+
   linksObject.children[1].innerHTML = "Stargroup";
   addRealDate();
+  
+  
 }
 
 // Based of guardian21 script
