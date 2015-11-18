@@ -2,7 +2,7 @@
 // @name           Colony Helper
 // @description	   Add Farm/Mall buttons if need to buy, also prev/next button to fast zipping
 // @namespace      bitbucket.org/Odahviing
-// @version		   2.1
+// @version		   2.11
 // @include        *.war-facts.com/view_colony.php*
 // @grant          GM_getValue
 // @grant          GM_setValue
@@ -13,7 +13,6 @@
 // 1.1  Add warning in colony page for lack in malls
 // 1.2  Add the ability to buy malls from mail page (inner settings for mall)
 // 1.3  Some Bug Fix
-// 1.3x Mall Change
 // 2.0  Add farm Option / Redesign Script
 // 2.1  Add warning if no input has been given
 
@@ -85,7 +84,7 @@ if (checkFarm == true)
 	var LowValue = allLines[11].getElementsByTagName('td')[1].innerHTML;
 	var HighValue = allLines[11].getElementsByTagName('td')[2].innerHTML;
 	
-	var currentProduction = (parseInt(LowValue) + parseInt(HighValue)) / 2;
+	var currentProduction = (parseInt(LowValue) * 0.6 + parseInt(HighValue) * 0.4); // Bit less then avg
 	var resourcesGap = Math.ceil((population - currentProduction * 10) / 10);			
 	if (resourcesGap > 0)
 	{
@@ -161,7 +160,7 @@ function buyFarms(gap)
 {
 	// First taking data from the page
 	var temp = mainDataBlock[3].innerHTML.split(" ")[1];
-  var wealth = temp.substring(temp.indexOf('</a>') + 9).trim();
+    var wealth = temp.substring(temp.indexOf('</a>') + 9).trim();
 	var wages = document.getElementById('wages').value;
 	
 	// Now lets see the %
@@ -179,7 +178,7 @@ function buyFarms(gap)
 	// Finish Calc
 	var toBuy = Math.ceil(gap / Math.sqrt(wages/wealth) / Math.sqrt(farmFert * farmConstant) / farmEffective);
 	var baseParams = "build=1&type=1&subtype=11";
-  baseParams = baseParams + "&buildid=" + farmId + "&colony=" + ColonyId + "&amount=" + toBuy;
+    baseParams = baseParams + "&buildid=" + farmId + "&colony=" + ColonyId + "&amount=" + toBuy;
 	sendAjaxRequest("POST", "build_facility.php", true, false, baseParams);
 	location.reload();
 }
