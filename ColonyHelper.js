@@ -14,7 +14,7 @@
 // 1.2  Add the ability to buy malls from mail page (inner settings for mall)
 // 1.3  Some Bug Fix
 // 2.0  Add farm Option / Redesign Script
-// 2.1  Add warning if no input has been given
+// 2.1x  Add warning if no input has been given / Bug fix
 
 var ColonyId = getQueryString(document.URL);
 
@@ -28,12 +28,12 @@ var multi = 1.1; // How much I want more then I need
 
 /* Prints Id */
 var mallId = 12584;
-var peopleMall = 0;
-var effMall = 0;
+var peopleMall = 36;
+var effMall = 794;
 // --- //
-var farmId = 12865;
-var peopleFarm = 0;
-var effFarm = 0;
+var farmId = 14285;
+var peopleFarm = 33;
+var effFarm = 722;
 
 /* Basic Actions & Button Setup */
 
@@ -55,13 +55,13 @@ if (peopleMall * peopleFarm == 0)
 	return;
 }
 var mainDataBlock = document.getElementsByClassName('light padding5 tbborder');
-var population = parseInt(mainDataBlock[0].innerHTML.split(" ")[0].replace("Population:", "").replace(',',''));
+var population = parseInt(mainDataBlock[0].innerHTML.split(" ")[0].replace("Population:", "").replace(',','').replace(",",""));
 var mallEffective = peopleMall * effMall / 100;
 var farmEffective = peopleFarm * effFarm / 100;
 
 if (checkMall == true)
 {
-	var peopleMalled = parseInt(mainDataBlock[5].innerHTML.split(' ')[1].replace("people:","").replace(",","").trim());
+	var peopleMalled = parseInt(mainDataBlock[5].innerHTML.split(' ')[1].replace("people:","").replace(",","").replace(",","").trim());
 	if (population * 1.1 > peopleMalled)
 	{
 		mainDataBlock[5].innerHTML = "<font color='red'>" + mainDataBlock[5].innerHTML + "</font><input type='button' id='mallbutton' value='buy'>";
@@ -84,7 +84,7 @@ if (checkFarm == true)
 	var LowValue = allLines[11].getElementsByTagName('td')[1].innerHTML;
 	var HighValue = allLines[11].getElementsByTagName('td')[2].innerHTML;
 	
-	var currentProduction = (parseInt(LowValue) * 0.6 + parseInt(HighValue) * 0.4); // Bit less then avg
+	var currentProduction = (parseInt(LowValue) * 0.7 + parseInt(HighValue) * 0.3);
 	var resourcesGap = Math.ceil((population - currentProduction * 10) / 10);			
 	if (resourcesGap > 0)
 	{
@@ -149,18 +149,20 @@ function buyMalls(people, malled)
 	var baseParams = "build=1&type=3&subtype=8";
 	
 	var missing = people - malled;
+
 	var toBuy = Math.ceil(missing / (mallEffective * 40));
 	baseParams = baseParams + "&buildid=" + mallId + "&colony=" + ColonyId + "&amount=" + toBuy;
-	sendAjaxRequest("POST", "build_facility.php", true, false, baseParams);
+  sendAjaxRequest("POST", "build_facility.php", true, false, baseParams);
 	
 	location.reload();
 }
 
 function buyFarms(gap)
 {
+	
 	// First taking data from the page
 	var temp = mainDataBlock[3].innerHTML.split(" ")[1];
-    var wealth = temp.substring(temp.indexOf('</a>') + 9).trim();
+  var wealth = temp.substring(temp.indexOf('</a>') + 9).trim();
 	var wages = document.getElementById('wages').value;
 	
 	// Now lets see the %
@@ -178,7 +180,7 @@ function buyFarms(gap)
 	// Finish Calc
 	var toBuy = Math.ceil(gap / Math.sqrt(wages/wealth) / Math.sqrt(farmFert * farmConstant) / farmEffective);
 	var baseParams = "build=1&type=1&subtype=11";
-    baseParams = baseParams + "&buildid=" + farmId + "&colony=" + ColonyId + "&amount=" + toBuy;
+  baseParams = baseParams + "&buildid=" + farmId + "&colony=" + ColonyId + "&amount=" + toBuy;
 	sendAjaxRequest("POST", "build_facility.php", true, false, baseParams);
 	location.reload();
 }
