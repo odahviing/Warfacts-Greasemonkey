@@ -2,7 +2,7 @@
 // @name           Colony Helper
 // @description	   Add Farm/Mall buttons if need to buy, also prev/next button to fast zipping
 // @namespace      bitbucket.org/Odahviing
-// @version		   2.11
+// @version		   2.12
 // @include        *.war-facts.com/view_colony.php*
 // @grant          GM_getValue
 // @grant          GM_setValue
@@ -27,13 +27,13 @@ var farmConstant = 0.18; // Don't have any idea what is the right number, but th
 var multi = 1.1; // How much I want more then I need
 
 /* Prints Id */
-var mallId = 12584;
-var peopleMall = 36;
-var effMall = 794;
+var mallId = 12584; // Print id
+var peopleMall = 0; // Workers
+var effMall = 0; // Effe
 // --- //
-var farmId = 14285;
-var peopleFarm = 33;
-var effFarm = 722;
+var farmId = 14285; // Print id
+var peopleFarm = 0; // Workers
+var effFarm = 0; // Effe
 
 /* Basic Actions & Button Setup */
 
@@ -51,7 +51,7 @@ if (isOneBuyerActive() == false) return;
 
 if (peopleMall * peopleFarm == 0)
 {
-    alert("You didn't update script settings for best blueprints, stopping..");
+    alert("New Version - Please update script settings");
 	return;
 }
 var mainDataBlock = document.getElementsByClassName('light padding5 tbborder');
