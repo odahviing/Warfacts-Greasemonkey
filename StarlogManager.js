@@ -3,7 +3,7 @@
 // @namespace   bitbucket.org/Odahviing
 // @include     http://www.war-facts.com/starlog.php*
 // @include     http://www.war-facts.com/player.php
-// @version     1.11
+// @version     2.0
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @description Starlog addon
@@ -12,10 +12,56 @@
 // Version 1.0  - Inital Script - Player filter + Real Time
 // Version 1.1  - Minor Changes on menus
 // Version 1.11 - Bug fix - not showing "hour"
+// Version 2.0 - Major upgrade: Remove starlog text with + button, rewrite the script
 
 // Features So Far
 // --- Ability to filter with "player" messages only
+// --- Show/Hide stargroup long tezxt
+// --- Ability to filter with "starlog" messages only
 
+
+main();
+
+function main()
+{
+  // Loading Groups Data
+  if (document.URL.indexOf("player.php") != -1)
+  {
+    saveGroups();
+  }
+  
+  addingButtons(); // Make the new menu   
+  //addStarlogGroupsBoxs(); // Add buttons to filter by each group 
+
+  var index = document.URL.indexOf("?");
+  if (index != -1)
+  {
+      var requestType = document.URL.substring(index + 1);
+
+      if (requestType == "type=2") // Show Stargroup Option
+      {
+        removeSinglePlayerMessages();
+      }
+      else if (requestType == "#0") // Show Player Option
+      {
+        showOnlyPlayerMessages();
+      }
+      // Not Active Option
+      else if (requestType.indexOf("#") =-1)
+      {
+        //     removeSinglePlayerMessages();
+        //     keepOnlyGroup(getType.substring(getType.indexOf("#") +1));
+      }  
+  }
+  else
+  {
+      removeStarlogText();
+  }
+  
+  addRealDates(); // Add real time dates to messages
+}
+
+/* Load Functions */
 
 function saveGroups()
 {
@@ -31,9 +77,8 @@ function saveGroups()
   GM_setValue("stargroupNames", arrayList);
 }
 
-function loadPlayerMessages()
+function addingButtons()
 {
- 
   // Make Player button
   var newLink = document.createElement('a');
   newLink.setAttribute('class', "darkbutton smalltext");
@@ -49,14 +94,11 @@ function loadPlayerMessages()
   outbox = linksObject.children[3];
   linksObject.insertBefore(outbox, null);
 
-  linksObject.children[1].innerHTML = "Stargroup";
-  addRealDate();
-  
-  
+  linksObject.children[1].innerHTML = "Stargroup";  
 }
 
 // Based of guardian21 script
-function addRealDate()
+function addRealDates()
 {
     //Set Time zone Difference
     var currentdate = new Date(); 
@@ -116,15 +158,76 @@ function addRealDate()
   
 }
 
+function removeStarlogText()
+{
+  var allMessages = document.getElementsByClassName('fullwidth dark tbborder');
+  var count = 1;
+  for (var index = 0; index < allMessages.length; index ++)
+  {
+    var theGroup = allMessages[index].getElementsByClassName('groupmessageheader');
+    if (theGroup.length == 1)  makeShowHideGroup(theGroup[0], ++count);
+  }
+}
+
+
+/* Button Functions */
+
 function loadOnlyPlayer()
 {
   window.location.replace("http://www.war-facts.com/starlog.php?#0");
 }
 
-function onlyPlayer()
+
+function removeSinglePlayerMessages()
+{
+  var allMessages = document.getElementsByClassName('fullwidth dark tbborder');
+  var removeList = [];
+  var count = 1;
+  
+  for (var index = 0; index < allMessages.length; index ++)
+  {
+    var isGroup = allMessages[index].getElementsByClassName('groupmessageheader');
+    if (isGroup.length == 0) removeList.push(allMessages[index]);
+    else makeShowHideGroup(isGroup[0], ++count);
+  }
+  
+  for (index = 0; index < removeList.length; index++) removeList[index].remove();
+}
+
+function makeShowHideGroup(elem, count)
+{
+    count = padCount(count);
+    var workingText = elem.innerHTML;
+    var newText = workingText.substring(workingText.indexOf('(') + 1, workingText.indexOf('</a>') + 4);
+    var groupId = workingText.substring(workingText.indexOf('syncGroup') + 10, workingText.indexOf("\">") - 1);
+    elem.innerHTML = "<label id='label" + count + groupId + "'>+</label>" + workingText.substring(0,workingText.indexOf('('));  
+    elem.outerHTML += "<label id='hiddentext" + count + groupId + "' class='groupmessageheader' style='display:none'>" + newText + "</label>";
+    var text = document.getElementById('label' + count + groupId);
+    text.addEventListener("click", changeTextView, true);  
+}
+
+function padCount(count)
+{
+  if (count < 10) return "00" + count;
+  if (count <100) return "0" + count;
+  return count;
+}
+
+function changeTextView(e)
+{
+  var id = e.target.id.substring(5);
+  var currentObject = document.getElementById('hiddentext' + id);
+  if (currentObject.style.display == "block")
+    currentObject.style.display = "none";
+  else
+    currentObject.style.display = "block";
+
+}
+
+function showOnlyPlayerMessages()
 {
   var allLines = document.getElementsByClassName('shadow');
-  
+  var groups = ["fleet", "explore", "colony", "empire", "science"];
   xhttp = new XMLHttpRequest();
   xhttp.open("GET", "http://www.war-facts.com/starlog.php?offset=100&type=2", false);
   xhttp.send();  
@@ -175,10 +278,8 @@ function changeStatus(name, status)
   for (index = 0; index < removeList.length; index++) removeList[index].remove();
 }
 
-function loadStarGroup(groupNumber)
-{
-  window.location.replace("http://www.war-facts.com/starlog.php?#" + groupNumber);
-}
+/* Private Stargroup Functions */
+
 function addCheckBoxs()
 { 
   var allMessages = document.getElementsByClassName('left starlog_right box dark padding5 minheight60');
@@ -201,7 +302,10 @@ function addCheckBoxs()
     }
 }
 
-
+function loadStarGroup(groupNumber)
+{
+  window.location.replace("http://www.war-facts.com/starlog.php?#" + groupNumber);
+}
 
 function keepOnlyGroup(groupKey)
 {
@@ -221,51 +325,4 @@ function keepOnlyGroup(groupKey)
   }
   
   for (index = 0; index < removeList.length; index++) removeList[index].remove(); 
-}
-
-
-function removePlayerMessages()
-{
-  var allMessages = document.getElementsByClassName('fullwidth dark tbborder');
-  var removeList = [];
-  
-  for (var index = 0; index < allMessages.length; index ++)
-  {
-    var isGroup = allMessages[index].getElementsByClassName('groupmessageheader');
-    if (isGroup.length == 0) removeList.push(allMessages[index]);
-  }
-  
-  for (index = 0; index < removeList.length; index++) removeList[index].remove();
-}
-
-// Loading
-if (document.URL.indexOf("player.php") != -1)
-  saveGroups();
-else
-{
-
-  // Start
-  loadPlayerMessages();
-  //addCheckBoxs();
-  var index = document.URL.indexOf("?");
-  if (index != -1)
-  {
-
-    var groups = ["fleet", "explore", "colony", "empire", "science"];
-
-    var getType = document.URL.substring(index + 1);    
-    if (getType == "type=2") 
-    {
-        removePlayerMessages();
-        
-    }
-    else if (getType =="#0") 
-      onlyPlayer();
-    else if (getType.indexOf("#") != -1)
-    {
-    //  removePlayerMessages();
-     //   keepOnlyGroup(getType.substring(getType.indexOf("#") +1));
-    }
-
-  }
 }
