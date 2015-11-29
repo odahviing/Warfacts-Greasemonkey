@@ -3,7 +3,7 @@
 // @namespace   bitbucket.org/Odahviing
 // @include     http://www.war-facts.com/starlog.php*
 // @include     http://www.war-facts.com/player.php
-// @version     2.0
+// @version     2.1
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @description Starlog addon
@@ -12,7 +12,8 @@
 // Version 1.0  - Inital Script - Player filter + Real Time
 // Version 1.1  - Minor Changes on menus
 // Version 1.11 - Bug fix - not showing "hour"
-// Version 2.0 - Major upgrade: Remove starlog text with + button, rewrite the script
+// Version 2.0 -  Major upgrade: Remove starlog text with + button, rewrite the script
+// Version 2.1 -  Bug fix - not showing all player messages
 
 // Features So Far
 // --- Ability to filter with "player" messages only
@@ -37,17 +38,20 @@ function main()
   if (index != -1)
   {
       var requestType = document.URL.substring(index + 1);
-
+    
+      requestType = requestType.replace("offset=100", "");
+    
       if (requestType == "type=2") // Show Stargroup Option
       {
         removeSinglePlayerMessages();
       }
-      else if (requestType == "#0") // Show Player Option
+      else if (requestType == "type=2&extra=1") // Show Player Option
       {
         showOnlyPlayerMessages();
       }
       // Not Active Option
-      else if (requestType.indexOf("#") =-1)
+      else if (requestType == ""){}
+      else if (requestType.indexOf("#") == -1)
       {
         //     removeSinglePlayerMessages();
         //     keepOnlyGroup(getType.substring(getType.indexOf("#") +1));
@@ -174,7 +178,7 @@ function removeStarlogText()
 
 function loadOnlyPlayer()
 {
-  window.location.replace("http://www.war-facts.com/starlog.php?#0");
+  window.location.replace("http://www.war-facts.com/starlog.php?type=2&extra=1");
 }
 
 
@@ -326,3 +330,9 @@ function keepOnlyGroup(groupKey)
   
   for (index = 0; index < removeList.length; index++) removeList[index].remove(); 
 }
+
+
+
+
+
+
