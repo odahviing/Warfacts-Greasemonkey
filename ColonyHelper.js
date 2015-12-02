@@ -2,7 +2,7 @@
 // @name           Colony Helper
 // @description	   Add Farm/Mall buttons if need to buy, also prev/next button to fast zipping
 // @namespace      bitbucket.org/Odahviing
-// @version		   2.12
+// @version		     2.2
 // @include        *.war-facts.com/view_colony.php*
 // @grant          GM_getValue
 // @grant          GM_setValue
@@ -14,7 +14,8 @@
 // 1.2  Add the ability to buy malls from mail page (inner settings for mall)
 // 1.3  Some Bug Fix
 // 2.0  Add farm Option / Redesign Script
-// 2.1x  Add warning if no input has been given / Bug fix
+// 2.1  Add warning if no input has been given
+// 2.2  Add buy storage option
 
 var ColonyId = getQueryString(document.URL);
 
@@ -23,17 +24,18 @@ var ColonyId = getQueryString(document.URL);
 var addPrevNext = true;
 var checkMall = true;
 var checkFarm = true;
+var checkStorage = true;
 var farmConstant = 0.18; // Don't have any idea what is the right number, but this number seems more or less right
 var multi = 1.1; // How much I want more then I need
 
 /* Prints Id */
-var mallId = 12584; // Print id
-var peopleMall = 0; // Workers
-var effMall = 0; // Effe
+var mallId = 14454;
+var peopleMall = 39;
+var effMall = 851;
 // --- //
-var farmId = 14285; // Print id
-var peopleFarm = 0; // Workers
-var effFarm = 0; // Effe
+var farmId = 14285;
+var peopleFarm = 33;
+var effFarm = 722;
 
 /* Basic Actions & Button Setup */
 
@@ -51,9 +53,10 @@ if (isOneBuyerActive() == false) return;
 
 if (peopleMall * peopleFarm == 0)
 {
-    alert("New Version - Please update script settings");
+    alert("You didn't update script settings for best blueprints, stopping..");
 	return;
 }
+
 var mainDataBlock = document.getElementsByClassName('light padding5 tbborder');
 var population = parseInt(mainDataBlock[0].innerHTML.split(" ")[0].replace("Population:", "").replace(',','').replace(",",""));
 var mallEffective = peopleMall * effMall / 100;
@@ -72,28 +75,47 @@ if (checkMall == true)
 
 if (checkFarm == true)
 {
+	
 	var tempHolder = mainDataBlock[16].innerHTML;
 	var currentFood = tempHolder.substring(tempHolder.indexOf("</a>") + 4, tempHolder.indexOf("<span>")).replace(",", "").trim();
-	if (population * 2 < currentFood) return;
 	
-    var link = "/extras/colony_res.php?colony=" + ColonyId;
-	var div = document.createElement('div');
-	div.innerHTML = sendAjaxRequest("GET", link, false, true, "");
-  
-	var allLines = div.getElementsByTagName('tr');
-	var LowValue = allLines[11].getElementsByTagName('td')[1].innerHTML;
-	var HighValue = allLines[11].getElementsByTagName('td')[2].innerHTML;
-	
-	var currentProduction = (parseInt(LowValue) * 0.7 + parseInt(HighValue) * 0.3);
-	var resourcesGap = Math.ceil((population - currentProduction * 10) / 10);			
-	if (resourcesGap > 0)
+	if (population * 2 >= currentFood)
 	{
-		 // Just making sure I don't have to much
-		if (currentFood < (population /10 - currentProduction) * 60)
+		var link = "/extras/colony_res.php?colony=" + ColonyId;
+		var div = document.createElement('div');
+
+		div.innerHTML = sendAjaxRequest("GET", link, false, true, "");
+
+		var allLines = div.getElementsByTagName('tr');
+		var LowValue = allLines[11].getElementsByTagName('td')[1].innerHTML;
+		var HighValue = allLines[11].getElementsByTagName('td')[2].innerHTML;
+
+		var currentProduction = (parseInt(LowValue) * 0.7 + parseInt(HighValue) * 0.3);
+		var resourcesGap = Math.ceil((population - currentProduction * 10) / 10);			
+		
+		if (resourcesGap > 0)
 		{
-			mainDataBlock[16].innerHTML = "<font color='red'>" + mainDataBlock[16].innerHTML + "</font><input type='button' id='farmbutton' value='buy'>";
-			var mainbutton = document.getElementById('farmbutton');		 mainbutton.addEventListener("click", function(){buyFarms(resourcesGap * multi)}, false);
+			 // Just making sure I don't have to much
+			if (currentFood < (population /10 - currentProduction) * 60)
+			{
+				mainDataBlock[16].innerHTML = "<font color='red'>" + mainDataBlock[16].innerHTML + "</font><input type='button' id='farmbutton' value='buy'>";
+				var mainbutton = document.getElementById('farmbutton');		 mainbutton.addEventListener("click", function(){buyFarms(resourcesGap * multi)}, false);
+			}
 		}
+	}	
+}
+
+if (checkStorage == true)
+{
+	var storageLeft = document.getElementsByClassName('storagetop')[0].innerHTML.split(' ')[0].replace(',','').replace(',','').replace(',','');
+	var storageAll = document.getElementsByClassName('storagebottom')[0].innerHTML.split(' ')[0].replace(',','').replace(',','').replace(',','');
+	var prec = Math.ceil((storageAll - storageLeft) * 100 / storageAll);
+	if (prec >= 80)
+	{
+		 var holder = document.getElementsByClassName('darkbutton noleft')[1];
+		 holder.innerHTML = "<font color='red'>" + holder.innerHTML + "</font>";		
+		 holder.onclick = "";
+		 holder.addEventListener('click', function(){buyStorage(storageAll,storageLeft);}, false);
 	}
 }
 
@@ -110,7 +132,7 @@ function sendAjaxRequest(type, link, async, withResponse, params)
 		return xhttp.responseText;
 }
 
-function isOneBuyerActive(){return (checkMall || checkFarm);}
+function isOneBuyerActive(){return (checkMall || checkFarm || checkStorage);}
 
 function getQueryString(colonyURL){
   var indexPoint = colonyURL.indexOf('?');
@@ -185,10 +207,11 @@ function buyFarms(gap)
 	location.reload();
 }
 
-
-
-
-
-
-
-
+function buyStorage(overall, left)
+{
+	// Get to 50% Free
+	var buy = overall - 2 * left;
+	var baseParams = "colony=" + ColonyId + "&addstorage=" + buy;
+	sendAjaxRequest('POST', "view_colony.php", true, false, baseParams);
+	location.reload();	
+}
