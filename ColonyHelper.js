@@ -2,7 +2,7 @@
 // @name           Colony Helper
 // @description	   Add Farm/Mall buttons if need to buy, also prev/next button to fast zipping
 // @namespace      bitbucket.org/Odahviing
-// @version		     2.2
+// @version		     2.21
 // @include        *.war-facts.com/view_colony.php*
 // @grant          GM_getValue
 // @grant          GM_setValue
@@ -15,7 +15,7 @@
 // 1.3  Some Bug Fix
 // 2.0  Add farm Option / Redesign Script
 // 2.1  Add warning if no input has been given
-// 2.2  Add buy storage option
+// 2.21  Add buy storage option + Math fix
 
 var ColonyId = getQueryString(document.URL);
 
@@ -36,6 +36,9 @@ var effMall = 851;
 var farmId = 14285;
 var peopleFarm = 33;
 var effFarm = 722;
+// --- //
+var storageLine = 80; // % of full before adding ability to buy
+var storageBuy = 50; // % to get while buying
 
 /* Basic Actions & Button Setup */
 
@@ -110,7 +113,7 @@ if (checkStorage == true)
 	var storageLeft = document.getElementsByClassName('storagetop')[0].innerHTML.split(' ')[0].replace(',','').replace(',','').replace(',','');
 	var storageAll = document.getElementsByClassName('storagebottom')[0].innerHTML.split(' ')[0].replace(',','').replace(',','').replace(',','');
 	var prec = Math.ceil((storageAll - storageLeft) * 100 / storageAll);
-	if (prec >= 80)
+	if (prec >= storageLine)
 	{
 		 var holder = document.getElementsByClassName('darkbutton noleft')[1];
 		 holder.innerHTML = "<font color='red'>" + holder.innerHTML + "</font>";		
@@ -209,9 +212,17 @@ function buyFarms(gap)
 
 function buyStorage(overall, left)
 {
-	// Get to 50% Free
-	var buy = overall - 2 * left;
+	var x = storageBuy / 100;
+	var buy = Math.round((x * overall- left) / (1-x));
 	var baseParams = "colony=" + ColonyId + "&addstorage=" + buy;
 	sendAjaxRequest('POST', "view_colony.php", true, false, baseParams);
 	location.reload();	
 }
+
+
+
+
+
+
+
+
