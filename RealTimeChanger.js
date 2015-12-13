@@ -1,14 +1,11 @@
 // ==UserScript==
-// @name        Game to Real Time Changer
-// @description Add ETA in real time for fleet arrival
-// @namespace   bitbucket.org/Odahviing
+// @name        Real Time Changer
+// @namespace   Cohenman.Resources
 // @match       http://*.war-facts.com/fleet.php*
 // @match       http://*.war-facts.com/overview.php?view=2
-// @version     1.0
+// @version     1
 // @grant       none
 // ==/UserScript==
-
-// Version 1.0 - Intial Script
 
 function calcTime(text){
   var splitText = text.split(" ");
@@ -46,10 +43,12 @@ function calcTime(text){
     return overallTime + " Minutes and " + sec + " Seconds";
   }
 
+  var sec = overallTime % 60;
+  overallTime = (overallTime - sec) / 60;  
+  
   var min = overallTime % 60;
   overallTime = (overallTime - min) / 60;
-  var sec = overallTime % 60;
-  overallTime = (overallTime - sec) / 60;
+
   
   if (overallTime > 24)
   {
@@ -78,15 +77,17 @@ function updateFromHours()
       {
          var leftovers = hoursLeft % 60;
          var hours = (hoursLeft - leftovers) / 60;
+        if (leftovers > 30) hoursLeft += 1;
          hoursLeft = hours % 24;
          var days = (hours - hoursLeft) /24;
-         fleets[index].innerHTML = text + " <font color='yellow'>(" + days + " Days, " + hoursLeft + " Hours)</font>";  
+         fleets[index].innerHTML = text + " <font color='yellow'>(~ " + days + " Days, " + hoursLeft + " Hours)</font>";  
       }
       else
       {
          var minutes = hoursLeft % 60;
          hoursLeft = (hoursLeft - minutes) / 60;
-         fleets[index].innerHTML = text + " <font color='yellow'>(" + hoursLeft + " Hours)</font>";  
+         if (minutes > 30) hoursLeft += 1;
+         fleets[index].innerHTML = text + " <font color='yellow'>(~ " + hoursLeft + " Hours)</font>";  
       }  
     }
 }
@@ -106,4 +107,4 @@ function main()
   }
 }
 
-window.setTimeout(main, 250); // Small time issue before running
+window.setTimeout(main, 320); // Small time issue before running
