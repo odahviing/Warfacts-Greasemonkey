@@ -6,7 +6,7 @@
 // @grant       none
 // ==/UserScript==
 
-// Version 1.0 - Detect AR planets & Unknown planets
+// Version 1.0 - Detect AR & Unknown planets
 
 RegularColor = "80FFFF";
 ARColor = "00FF00";
@@ -14,12 +14,12 @@ unknownColor = "FF0000";
 
 planetsAR = [];
 planetsUnknown = [];
+isEmpire = (document.getElementsByClassName('sun')[1].innerHTML.indexOf("empire") != -1);
 
 main();
 
 function main()
 {
-   var planetsAR = [];
    var allPlanets = getAllPlanetsId();
    for (var index = 0; index < allPlanets.length; index ++)
    {
@@ -29,13 +29,17 @@ function main()
       }
    }
    paintSystemText();
+   document.body.innerHTML += "Loaded";
 }
 
 function getAllPlanetsId()
 {
    var allPlanets = [];
    var allLinks = document.getElementsByTagName('a');
-   for (var index = 4 ; index < allLinks.length; index ++)
+   var index = 4;
+   if (isEmpire == true) index = 5;
+
+   for (; index < allLinks.length; index ++)
    {
       var planetId = extractPlanetId(allLinks[index].href);
       allPlanets.push(planetId);
@@ -67,7 +71,8 @@ function isARPlanet(id)
    var link = "view_planet.php?planet=" + id;  
    var holder = getPage(link);
    var resources = holder.getElementsByClassName('left tbborder overauto light padding5 box width50');
-   if (holder.innerHTML.indexOf('You have ') != -1)
+
+  if (holder.innerHTML.indexOf('You have ') != -1)
    {
       planetsUnknown.push(id);
       return;
@@ -80,6 +85,7 @@ function isARPlanet(id)
       if (value == 0)
         return false;
    }
+   
    return true;
 }
 
