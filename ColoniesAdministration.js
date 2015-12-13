@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Colonies Administration
+// @name        Colonies Settings
 // @namespace   bitbucket.org/Odahviing
 // @include     http://www.war-facts.com/overview.php?view=1
 // @version     1.2
