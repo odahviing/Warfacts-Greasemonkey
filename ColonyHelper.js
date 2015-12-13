@@ -29,13 +29,13 @@ var farmConstant = 0.18; // Don't have any idea what is the right number, but th
 var multi = 1.1; // How much I want more then I need
 
 /* Prints Id */
-var mallId = 14454;
-var peopleMall = 39;
-var effMall = 851;
+var mallId = 16683;
+var peopleMall = 0;
+var effMall = 0;
 // --- //
-var farmId = 14285;
-var peopleFarm = 33;
-var effFarm = 722;
+var farmId = 15322;
+var peopleFarm = 0;
+var effFarm = 0;
 // --- //
 var storageLine = 80; // % of full before adding ability to buy
 var storageBuy = 50; // % to get while buying
@@ -218,11 +218,3 @@ function buyStorage(overall, left)
 	sendAjaxRequest('POST', "view_colony.php", true, false, baseParams);
 	location.reload();	
 }
-
-
-
-
-
-
-
-
