@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name        Starlog Manager
-// @namespace   bitbucket.org/Odahviing
+// @namespace   Odahviing
+// @author      Odahviing
 // @include     http://www.war-facts.com/starlog.php*
 // @include     http://www.war-facts.com/player.php
-// @version     2.1
+// @version     2.2
 // @grant       GM_getValue
 // @grant       GM_setValue
 // @description Starlog addon
@@ -14,6 +15,7 @@
 // Version 1.11 - Bug fix - not showing "hour"
 // Version 2.0 -  Major upgrade: Remove starlog text with + button, rewrite the script
 // Version 2.1 -  Bug fix - not showing all player messages
+// Version 2.11+ - Updates on Greasy Fork
 
 // Features So Far
 // --- Ability to filter with "player" messages only
@@ -60,6 +62,9 @@ function main()
   else
   {
       removeStarlogText();
+      var allExplore = document.getElementsByClassName('fullwidth dark tbborder starlog_explore');
+      for (let index = 0 ; index < allExplore.length; index++)
+          allExplore[index].style.display = "none";
   }
   
   addRealDates(); // Add real time dates to messages

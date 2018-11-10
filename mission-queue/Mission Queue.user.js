@@ -63,78 +63,123 @@ mission:colonize;planet:12348
 </MISSION>
  */
 
-/* Greasemonkey 20080112 workaround */
-function wrap(f) {
-	return function () {
-		setTimeout.apply(window, [f, 0].concat([].slice.call(arguments)));
-	};
+var fleetid = window.location.href.match(/fleet=(\d+)/);
+if (fleetid) fleetid = fleetid[1];
+else return;
+
+var notes = document.getElementById('fleetNoteContent');
+var url = 'http://' + window.location.hostname + '/fleet.php?fleet=' + fleetid;
+
+var missions = [];
+var currentMission = 0;
+
+function parseNote() {
+    let allLines = notes.innerHTML.split('\n');
+    if (allLines[0].indexOf('&lt;MISSION') != 0)
+        return undefined;
+
+    for (let i = 1; i < allLines.length -1; i++)
+    {
+        missions.push({
+            topic: allLines[i].split(';')[0].split(':')[0],
+            type: allLines[i].split(';')[0].split(':')[1],
+            details: allLines[i].split(';')[1].split(':')
+        });
+    }
+
+    let getNum = allLines[0].substring(allLines[0].indexOf('step')+5, allLines[0].indexOf('&gt'));
+    currentMission = parseInt(getNum);
+    return true;
 }
-/* End of workaround */
 
-function main() {
-	
-	
-	if (document.evaluate("//b[text()='In Transit']", document, null, XPathResult.BOOLEAN_TYPE, null).booleanValue) {
-		return;
-	}
+function doMission() {
+    let Mission = missions[currentMission];
+    if (Mission == undefined)
+    {
+        console.log('No Mission');
+        return;
+    }
 
-	var notes = document.getElementById('fleetNoteContent');
-	
-	//var note_submit = notes.parentNode.getElementsByTagName('input')[2];
-	
-	var t;
-	var b;
-	var s;
-	var p;
-	var form2;
-	var mnum;
-	var gets = 0;
+    console.log('Topic:' + Mission.topic);
+    if (Mission.topic == 'mission')
+    {
+        let action = Mission.details[0];
+        document.getElementById('objective').value = Mission.type;
 
-	var restypes = new Array('iron', 'copper', 'silver', 'titanium', 'gold', 'uranium', 'platinum', 'diamonds', 'oil', 'water', 'food');
+        console.log('action:' + action);
+        switch (action)
+        {
+            case 'planet':
+            runExploreMission(Mission.details[1]);
+                break;
+            case 'system':
+                runMissionbyUrl(Mission.type, '&tsystem=' + Mission.details[1]);
+                break;
+            case 'global':
+                break;
+            case 'local':
+                break;
+        }
+      //  updateMissionFinish();
+    }
+}
 
-	var fleetid = window.location.href.match(/fleet=(\d+)/);
-	if (fleetid) {
-		fleetid = fleetid[1];
-	} else {
-		return;
-	}
+function updateMissionFinish()
+{
+    currentMission++;
+    var newNotes = notes.value.replace(/step=\d+/, 'step=' + currentMission);
+    updateNoteServer(newNotes);
+}
 
-	var mission_notes = notes.value.match(/<MISSION step=(\d+)>\n([\s\S]+?)\n<\/MISSION>/);
-	
-	if (mission_notes) {
-		t = document.createElement('input');
-		b = document.createElement('input');
-		s = document.createElement('input');
-		t.setAttribute('class', 'text');
-		t.setAttribute('type', 'text');
-		t.setAttribute('id', 'missionbox');
-		t.setAttribute('size', '50');
-		b.setAttribute('class', 'warn');
-		b.setAttribute('type', 'button');
-		b.setAttribute('id', 'missiondo');
-		b.setAttribute('onclick', 'missionDo(document.getElementById("missionbox").value)');
-		s.setAttribute('class', 'text');
-		s.setAttribute('type', 'text');
-		s.setAttribute('id', 'statusbox');
-		s.setAttribute('size', '60');
-		s.disabled = true;
-		var fleetFrame = document.getElementById('fleetNote');
-		form2 = fleetFrame.getElementsByClassName('highlight fullwidth padding5')[0];
-		p = document.createElement('p');
-		p.appendChild(t);
-		p.appendChild(b);
-		p.appendChild(document.createElement('br'));
-		p.appendChild(s);
-		form2.appendChild(p);
-		
-		
-		updateMission();
-		
-	}
+function updateNoteServer(textNotes)
+{
+    var url = 'http://' + window.location.hostname + '/notemanager.php';
+    var pars = 'type=fleet&id=' + fleetid + '&note=' + encodeURIComponent(textNotes);
+    GM_xmlhttpRequest({
+				method : 'POST',
+				url : url,
+				headers : {
+					'User-agent' : 'Mozilla/4.0 (compatible) Greasemonkey',
+					'Accept' : 'application/atom+xml,application/xml,text/xml,text/html',
+					'Content-Type' : 'application/x-www-form-urlencoded'
+				},
+				data : pars,
+				onload : function () {
+					notes.value = textNotes
+				}
+			});
+}
 
-	function updateMission() {
+
+
+
+function runExploreMission(wantedPlanet)
+{
+    let optionsElements = document.getElementById('target1')
+    optionsElements.value='tworld,' + wantedPlanet;
+    getMission("verify", "target1")
+    setTimeout(getMission('launch'),200);
+}
+
+function loadButtons()
+{
+    let newButton = document.createElement('input');
+    newButton.type = 'button'
+    newButton.style = 'width: 130px;'
+    newButton.className = 'darkbutton dangerbutton';
+    newButton.addEventListener("click", doMission);
+    document.getElementsByClassName('iBlock tbborder padding5 fullwidth light')[0].insertBefore(newButton, null);
+}
+
+function runMissionbyUrl(type, Url)
+{
+    window.location = url + Url;
+    document.getElementById('objective').value = type;
+}
+
+function updateMissionStatus() {
 		var missions = mission_notes[2].split("\n");
-		mnum = mnum != undefined ? mnum : mission_notes[1] - 1;
+        mnum = mnum != undefined ? mnum : mission_notes[1];
 		mnum = (missions[mnum] && missions[mnum].indexOf('restart') == 8) ? 0 : mnum;
 		var current_mission = missions[mnum] ? missions[mnum] : 'done';
 
@@ -149,14 +194,15 @@ function main() {
 		t.value = current_mission;
 	}
 
-	function missionDo(mission) {
+function missionDo(mission) {
 		// Do Mission stuff
-		var url = 'http://' + window.location.hostname + '/';
+
 		var type;
 		var subtype;
 		var marray = mission.split(';');
 
 		for (var i = 0, len = marray.length; i < len; i++) {
+            console.log(marray);
 			var m = marray[i].split(':');
 
 			// Step
@@ -177,13 +223,16 @@ function main() {
 			if (type == 'mission') {
 				switch (m[0]) {
 				case 'planet':
-					url += '&tworld2=' + m[1];
+                    runPlanetMission(m[1]);
+					//url += '&tworld2=' + m[1];
 					break;
 				case 'system':
 					url += '&tsystem=' + m[1];
+                     runMissionbyUrl(url);
 					break;
 				case 'colony':
 					url += '&tcolony2=' + m[1];
+                        runMissionbyUrl(url);
 					break;
 				case 'global':
 					url += '&tpos=global&rawcoords=' + encodeURIComponent(m[1]);
@@ -318,13 +367,80 @@ function main() {
 		// Mission Stuff
 
 		// Go to mission URL
-		execMission(type, url);
+		// execMission(type, url);
 	}
+
+function main() {
+	if (document.evaluate("//b[text()='In Transit']", document, null, XPathResult.BOOLEAN_TYPE, null).booleanValue) {
+		return;
+	}
+
+    hasNotes = parseNote();
+    if (hasNotes == undefined)
+    {
+        console.log('No Mission Log')
+        return;
+    }
+
+    setTimeout(loadButtons, 50);
+
+    return;
+
+
+	
+	//var note_submit = notes.parentNode.getElementsByTagName('input')[2];
+	var t;
+	var b;
+	var s;
+	var p;
+	var form2;
+	
+	var gets = 0;
+
+	var restypes = new Array('iron', 'copper', 'silver', 'titanium', 'gold', 'uranium', 'platinum', 'diamonds', 'oil', 'water', 'food');
+
+
+
+	var mission_notes = notes.value.match(/<MISSION step=(\d+)>\n([\s\S]+?)\n<\/MISSION>/);
+	//console.log(mission_notes);
+
+	if (mission_notes) {
+		t = document.createElement('input');
+		b = document.createElement('input');
+		s = document.createElement('input');
+		t.setAttribute('class', 'text');
+		t.setAttribute('type', 'text');
+		t.setAttribute('id', 'missionbox');
+		t.setAttribute('size', '50');
+		b.setAttribute('class', 'warn');
+		b.setAttribute('type', 'button');
+		b.setAttribute('id', 'missiondo');
+		b.setAttribute('onclick', 'missionDo(document.getElementById("missionbox").value)');
+		s.setAttribute('class', 'text');
+		s.setAttribute('type', 'text');
+		s.setAttribute('id', 'statusbox');
+		s.setAttribute('size', '60');
+		s.disabled = true;
+		var fleetFrame = document.getElementById('fleetNote');
+		form2 = fleetFrame.getElementsByClassName('highlight fullwidth padding5')[0];
+		p = document.createElement('p');
+		p.appendChild(t);
+		p.appendChild(b);
+		p.appendChild(document.createElement('br'));
+		p.appendChild(s);
+		form2.appendChild(p);
+		updateMissionStatus();
+	}
+
+	
+
+	
+
     exportFunction(missionDo, unsafeWindow, {defineAs: "missionDo"});
 
 	window.saveMission = wrap(function (mnum) {
 			mnum++;
-			s.value += 'Saving Mission... ';
+			//s.value += 'Saving Mission... ';
 			var new_notes = notes.value.replace(/step=\d+/, 'step=' + mnum);
 			var url = 'http://' + window.location.hostname + '/notemanager.php';
 			var pars = 'type=fleet&id=' + fleetid + '&note=' + encodeURIComponent(new_notes);
@@ -338,7 +454,6 @@ function main() {
 				},
 				data : pars,
 				onload : function () {
-					s.value += 'Done.';
 					notes.value = new_notes
 				}
 			});
