@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    bitbucket.org/Odahviing
-// @version      2.0
+// @version      2.1
 // @description  Ease your exploration mission with smart logic
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -15,6 +15,10 @@
 // -- Support refueling only if needing
 // -- Using only jsmap_postload_v2 function to load data
 // -- Defending from systems that will lock the probe
+
+// Version 2.1
+// -- Bug fix when the button is not ready to load
+// -- Design a different way to auto-press the button
 
 // TODO:
 // -- Fix Numbering ! My cords is off
@@ -31,25 +35,12 @@ var zoomOutNumber = 3000;
 (function() {
     'use strict';
     setTimeout(loadButton, 600);
-    if (pressTheButton() == true)
-        getMission('launch');
-
+    setTimeout(pressTheButton, 100);
     // Your code here...
 })();
 
 function pressTheButton() {
-    var title = document.getElementById('fleetClass').innerHTML;
-    if (title != 'Explorer' && title != 'Sentry') return false;
-
-    var mButton = document.getElementById('mButton');
-    if (mButton.innerHTML != '&nbsp;') {
-        console.log('dos -' + mButton.innerHTML);
-        console.log(mButton.getElementsByTagName('input')[0].value);
-
-        if (mButton.getElementsByTagName('input')[0].value != 'Launch Mission')
-            return false;
-        return true;
-    }
+    if (document.URL.indexOf('callback=1') > 0) getMission('launch')
 }
 
 function findUnexplored(url) {
@@ -123,12 +114,8 @@ var fleetNumber;
 var fleetRange;
 var fleetFuel;
 
-class Cord {
-    constructor(x,y,z) {
-        this.X = parseInt(x);
-        this.Y = parseInt(y);
-        this.Z = parseInt(z);
-    }
+function buildCordsObject(x,y,z) {
+    return {X : parseInt(x), Y: parseInt(y), Z: parseInt(z)}
 }
 
 function getDistance(cordsA, cordsB) {
@@ -151,13 +138,12 @@ function findUnexploredJSV2(url, firstTry = true) {
                 let eachValue = eachLine[nums[i]].split('\t');
                 if (eachValue[6] != 'unexplored') continue;
 
-                let newCords = new Cord(eachValue[3], eachValue[4], eachValue[5]);
+                let newCords = buildCordsObject(eachValue[3], eachValue[4], eachValue[5]);
                 if (eachValue[3] > 300000) continue;
-
                 let distance = getDistance(newCords, mainCord);
                 if (distance > fleetRange) continue;
 
-                return fulfill(`http://www.war-facts.com/fleet.php?tpos=global&x=${newCords.X}&y=${newCords.Y}&z=${newCords.Z}&fleet=${fleetNumber}`);
+                return fulfill(`http://www.war-facts.com/fleet.php?tpos=global&x=${newCords.X}&y=${newCords.Y}&z=${newCords.Z}&fleet=${fleetNumber}&callback=1`);
             }
 
             if (firstTry == true)
@@ -175,7 +161,7 @@ function extractLink(url) {
     let y = cords[1].split('=')[1];
     let z = cords[2].split('=')[1];
 
-    mainCord = new Cord(x,y,z);
+    mainCord = buildCordsObject(x,y,z);
     return `http://www.war-facts.com/ajax/jsmap_postload_v2.php?centerX=${x}&centerY=${y}&centerZ=${z}&displayRange=25000`;
 }
 
