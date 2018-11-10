@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    bitbucket.org/Odahviing
-// @version      2.1
+// @version      2.2
 // @description  Ease your exploration mission with smart logic
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -19,6 +19,9 @@
 // Version 2.1
 // -- Bug fix when the button is not ready to load
 // -- Design a different way to auto-press the button
+
+// Version 2.2
+// -- Fix a stupid bug that ignore places that had x value of aboue 300000 (so almost every galaxy)
 
 // TODO:
 // -- Fix Numbering ! My cords is off
@@ -139,8 +142,14 @@ function findUnexploredJSV2(url, firstTry = true) {
                 if (eachValue[6] != 'unexplored') continue;
 
                 let newCords = buildCordsObject(eachValue[3], eachValue[4], eachValue[5]);
-                if (eachValue[3] > 300000) continue;
+                if (eachValue[3] > 1000000) continue;
+
                 let distance = getDistance(newCords, mainCord);
+                /*
+                console.log(mainCord);
+                console.log(newCords);
+                console.log(distance);
+                */
                 if (distance > fleetRange) continue;
 
                 return fulfill(`http://www.war-facts.com/fleet.php?tpos=global&x=${newCords.X}&y=${newCords.Y}&z=${newCords.Z}&fleet=${fleetNumber}&callback=1`);
