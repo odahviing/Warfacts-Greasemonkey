@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts-greasemonkey
-// @version      2.4
+// @version      2.5
 // @description  Ease your exploration mission with automatic smart logic for probing
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -25,13 +25,15 @@
 
 // Version 2.3 - Code Beautifier
 
-// Version 2.4 - Bug Fix
+// Version 2.4
 // -- Change settings so the closest system will be explored, but will verify (hopefully) that its won't getting explored by another probe
 
+// Version 2.5 - Bug Fix
+// -- If the page is loaded to fast, its not pressing explore at time
+// -- Change to only one cycle, too heavy otherwise
 
 // TODO:
 // -- Fix Numbering ! My cords is off
-// -- Find a Way to NOT go to the same planet (and then priotize by distance)
 
 // Settings
 
@@ -43,7 +45,7 @@ var zoomOutNumber = 3000; // The zoomout after failing finding unexplored system
 (function() {
     'use strict';
     setTimeout(loadButton, 600);
-    setTimeout(pressTheButton, 100);
+    setTimeout(pressTheButton, 250);
 })();
 
 // On-Load Functions
@@ -61,7 +63,10 @@ function loadButton() {
 }
 
 function pressTheButton() {
-    if (document.URL.indexOf('callback=1') > 0) getMission('launch')
+    if (document.URL.indexOf('callback=1') > 0) {
+        document.getElementById('objective').value='explore';
+        getMission('launch');
+    }
 }
 
 // End On-Load Functions
@@ -98,7 +103,7 @@ function run() {
         findUnexplored(baseUrlLink).then(function(result) {
             if (result == false) {
                 if (fleetFuel < minimumFuelAmount) {
-                    console.log(`Auto-Exploration: Will Try to Refuel Probe, Only Has:${fleetFuel}`);
+                    console.log(`Auto-Exploration: Will Try to Refuel Probe, Only Has: ${fleetFuel.toString().replace(/(\d)(?=(\d{3})+$)/g, '$1,')} Left`);
                     let optionsElements = document.getElementById('target1').getElementsByTagName('option');
                     if (optionsElements.length == 2)
                         return alert('No Place To Re-fuel');
@@ -278,7 +283,7 @@ function isEqule(cordsA, cordsB) {
     return (cordsA.X == cordsB.X && cordsA.Y == cordsB.Y && cordsA.Z == cordsB.Z);
 }
 
-function findUnexploredJSV2(url, firstTry = true) {
+function findUnexploredJSV2(url) {
     var newLink = extractLink(url);
     return new Promise(function (fulfill, reject){
         var allCurrentRoutes = [];
@@ -327,10 +332,7 @@ function findUnexploredJSV2(url, firstTry = true) {
                 }
             }
 
-            if (firstTry == true)
-                return fulfill(findUnexploredJSV2(replaceDeepUrl(url, zoomOutNumber), false))
-            else
-                return fulfill(false);
+            return fulfill(false);
         });
     });
 }
