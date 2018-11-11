@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts-greasemonkey
-// @version      2.3
+// @version      2.4
 // @description  Ease your exploration mission with automatic smart logic for probing
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -24,6 +24,10 @@
 // -- Fix a stupid bug that ignore places that had x value of aboue 300000 (so almost every galaxy)
 
 // Version 2.3 - Code Beautifier
+
+// Version 2.4 - Bug Fix
+// -- Change settings so the closest system will be explored, but will verify (hopefully) that its won't getting explored by another probe
+
 
 // TODO:
 // -- Fix Numbering ! My cords is off
@@ -94,6 +98,7 @@ function run() {
         findUnexplored(baseUrlLink).then(function(result) {
             if (result == false) {
                 if (fleetFuel < minimumFuelAmount) {
+                    console.log(`Auto-Exploration: Will Try to Refuel Probe, Only Has:${fleetFuel}`);
                     let optionsElements = document.getElementById('target1').getElementsByTagName('option');
                     if (optionsElements.length == 2)
                         return alert('No Place To Re-fuel');
@@ -112,7 +117,7 @@ function run() {
                 window.location = result;
             }
         }).catch(function (reason) {
-            alert(reason);
+            console.log(reason);
         return false;
         })
     }).catch(function (reason) {
@@ -269,30 +274,57 @@ function getDistance(cordsA, cordsB) {
     return 4000 * f;
 }
 
+function isEqule(cordsA, cordsB) {
+    return (cordsA.X == cordsB.X && cordsA.Y == cordsB.Y && cordsA.Z == cordsB.Z);
+}
+
 function findUnexploredJSV2(url, firstTry = true) {
     var newLink = extractLink(url);
     return new Promise(function (fulfill, reject){
+        var allCurrentRoutes = [];
         var allOptions = [];
         sendAjaxRequest("GET", newLink, true, true, null).then(function(dom) {
             let eachLine = dom.split('\n');
-            var nums = createShuffleArray(eachLine.length);
+
+            console.log(`Auto-Exploration: Got ${eachLine.length} Records To Check`);
+
+            for (let i = 0; i < eachLine.length; i++)
+            {
+                let eachValue = eachLine[i].split('\t');
+                if (eachValue[1] != 'f') continue;
+                let cordsUsed = eachValue[7].split('');
+                if (cordsUsed[0] == 0) continue;
+                allCurrentRoutes.push(buildCordsObject(cordsUsed[0], cordsUsed[1], cordsUsed[2]));
+            }
+
+            console.log(`Auto-Exploration: Found ${allCurrentRoutes.length} Already Probes System`);
+
             for (let i = 0 ; i < eachLine.length; i++)
             {
-                let eachValue = eachLine[nums[i]].split('\t');
+                let eachValue = eachLine[i].split('\t');
                 if (eachValue[6] != 'unexplored') continue;
 
                 let newCords = buildCordsObject(eachValue[3], eachValue[4], eachValue[5]);
                 if (eachValue[3] > 1000000) continue;
 
                 let distance = getDistance(newCords, mainCord);
-                /*
-                console.log(mainCord);
-                console.log(newCords);
-                console.log(distance);
-                */
                 if (distance > fleetRange) continue;
 
-                return fulfill(`http://www.war-facts.com/fleet.php?tpos=global&x=${newCords.X}&y=${newCords.Y}&z=${newCords.Z}&fleet=${fleetNumber}&callback=1`);
+                allOptions.push({C: newCords, D: distance});
+            }
+
+            console.log(`Auto-Exploration: Found ${allOptions.length} Possible Unexplored System To Explore`);
+            allOptions.sort(function(a, b) {return a.D - b.D});
+
+            for (let i = 0 ; i < allOptions.length; i++)
+            {
+                let exists = allCurrentRoutes.filter(x => x.C == allOptions[i].C);
+                if (exists.length == 0)
+                {
+                    let newCords = allOptions[i].C;
+                    console.log(`Auto-Exploration: Decided To Explore Option ${i+1}: (${newCords.X},${newCords.Y},${newCords.Z})`);
+                    return fulfill(`http://www.war-facts.com/fleet.php?tpos=global&x=${newCords.X}&y=${newCords.Y}&z=${newCords.Z}&fleet=${fleetNumber}&callback=1`);
+                }
             }
 
             if (firstTry == true)
