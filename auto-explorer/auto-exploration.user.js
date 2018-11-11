@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts-greasemonkey
-// @version      2.5
+// @version      2.6
 // @description  Ease your exploration mission with automatic smart logic for probing
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -20,17 +20,16 @@
 // -- Bug fix when the button is not ready to load
 // -- Design a different way to auto-press the button
 
-// Version 2.2
-// -- Fix a stupid bug that ignore places that had x value of aboue 300000 (so almost every galaxy)
-
+// Version 2.2 -- Fix a stupid bug that ignore places that had x value of aboue 300000 (so almost every galaxy)
 // Version 2.3 - Code Beautifier
 
-// Version 2.4
-// -- Change settings so the closest system will be explored, but will verify (hopefully) that its won't getting explored by another probe
+// Version 2.4 -- Change settings so the closest system will be explored, but will verify (hopefully) that its won't getting explored by another probe
 
 // Version 2.5 - Bug Fix
 // -- If the page is loaded to fast, its not pressing explore at time
 // -- Change to only one cycle, too heavy otherwise
+
+// Version 2.6 - Bug fix that cause fleets to go to the same planets. Now it will be better
 
 // TODO:
 // -- Fix Numbering ! My cords is off
@@ -111,7 +110,7 @@ function run() {
                         let finalPlanet = optionsElements[2].value.split(',')[1]
                         document.getElementById('target1').value='tworld,' + finalPlanet;
                         getMission("verify", "target1")
-                        return setTimeout(getMission('launch'),100);
+                        return setTimeout(getMission('launch'),250);
                     }
                 }
                 else {
@@ -318,20 +317,19 @@ function findUnexploredJSV2(url) {
                 allOptions.push({C: newCords, D: distance});
             }
 
-            console.log(`Auto-Exploration: Found ${allOptions.length} Possible Unexplored System To Explore`);
+            console.log(`Auto-Exploration: Found ${allOptions.length} Possible Unexplored Systems To Explore`);
             allOptions.sort(function(a, b) {return a.D - b.D});
 
             for (let i = 0 ; i < allOptions.length; i++)
             {
-                let exists = allCurrentRoutes.filter(x => x.C == allOptions[i].C);
-                if (exists.length == 0)
+                let exists = allCurrentRoutes.find(X => isEqule(X, allOptions[i].C));
+                if (!exists)
                 {
                     let newCords = allOptions[i].C;
                     console.log(`Auto-Exploration: Decided To Explore Option ${i+1}: (${newCords.X},${newCords.Y},${newCords.Z})`);
                     return fulfill(`http://www.war-facts.com/fleet.php?tpos=global&x=${newCords.X}&y=${newCords.Y}&z=${newCords.Z}&fleet=${fleetNumber}&callback=1`);
                 }
             }
-
             return fulfill(false);
         });
     });
