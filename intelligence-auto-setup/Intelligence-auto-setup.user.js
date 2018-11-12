@@ -1,23 +1,25 @@
 // ==UserScript==
-// @name        IntelligenceAutoSetup 
-// @namespace   Odahviing
+// @name        Intelligence Auto Setup 
+// @namespace   github.com/odahviing
 // @author      Odahviing
 // @include     http://*.war-facts.com/intelligence.php
 // @include     http://*.war-facts.com/empire_known_universe.php
-// @description Small script to auto-chose settings for AR planets
-// @version     1.2
+// @description Script to auto-setup of search settings and improve results
+// @version     1.3
 // @grant       none
 // ==/UserScript==
 
-    class Cord {
-        constructor(stringCord) {
-            stringCord.replace(' ','').replace(' ','').replace(' ','');
-            let wantedCords = stringCord.split(",");
-            this.X = wantedCords[0];
-            this.Y = wantedCords[1];
-            this.Z = wantedCords[2];
-        }
+// Version 1.3 - Add distance from target
+
+class Cord {
+    constructor(stringCord) {
+        stringCord.replace(' ','').replace(' ','').replace(' ','');
+        let wantedCords = stringCord.split(",");
+        this.X = wantedCords[0];
+        this.Y = wantedCords[1];
+        this.Z = wantedCords[2];
     }
+}
 
 function getDistance(cordsA, cordsB) {
     let X = Math.pow(cordsA.X - cordsB.X, 2);
@@ -80,8 +82,6 @@ function setupPlanet()
 }
 
 function orderByDist() {
-
-
     var getWantedCords = document.getElementById('xyz').value;
     console.log(getWantedCords);
     let wantedCords = new Cord(getWantedCords);
@@ -101,10 +101,6 @@ function orderByDist() {
     }
 }
 
-
-
-
 makeButtonForRemove();
 makeButtonForOrder();
 setupPlanet();
-
