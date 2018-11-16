@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts-greasemonkey
-// @version      2.6
-// @description  Ease your exploration mission with automatic smart logic for probing
+// @version      2.7
+// @description  Ease your exploration mission with automatic smart exploring logic for probing, in a single click
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
 // @exclude      http://www.war-facts.com/fleet.php?mtype*
@@ -10,26 +10,29 @@
 // ==/UserScript==
 
 // Version 1.0 - Base Exploring Support
-// Version 2.0 - JavaScript V2 Support [Changed System]
+// Version 2.0 - JavaScript V2 Support [New Exploring System]
 // -- Support auto-click
-// -- Support refueling only if needing
+// -- Support refueling only if needing, if you have system near by and the fuel enough, go for it
 // -- Using only jsmap_postload_v2 function to load data
-// -- Defending from systems that will lock the probe
+// -- Avoid systems that will lock the probe without fuel to reach the planets
 
 // Version 2.1
 // -- Bug fix when the button is not ready to load
 // -- Design a different way to auto-press the button
 
-// Version 2.2 -- Fix a stupid bug that ignore places that had x value of aboue 300000 (so almost every galaxy)
-// Version 2.3 - Code Beautifier
+// Version 2.2 -- Fix a stupid bug that ignore places that had x value of aboue 300000 (so almost every galaxy outside Alpha)
+// Version 2.3 -- Code Beautifier
+// Version 2.4 -- Change settings so the closest system will be explored, but without duplicate systems
 
-// Version 2.4 -- Change settings so the closest system will be explored, but will verify (hopefully) that its won't getting explored by another probe
+// Version 2.5
+// -- Change to only one data cycle, too heavy otherwise
+// -- Fix a bug that if the page is loaded to fast, its not pressing explore at time
 
-// Version 2.5 - Bug Fix
-// -- If the page is loaded to fast, its not pressing explore at time
-// -- Change to only one cycle, too heavy otherwise
+// Version 2.6 - Bug fix that cause fleets to not avoiding reaching planets that are already on the way to be explored
 
-// Version 2.6 - Bug fix that cause fleets to go to the same planets. Now it will be better
+// Version 2.7
+// -- Auto move to next free explorer
+// -- Alert if enemy fleet detected
 
 // TODO:
 // -- Fix Numbering ! My cords is off
@@ -40,10 +43,12 @@ var JavaScriptV2 = true; // It seems to work on every UI and faster, so no need 
 var minimumFuelAmount = 50000000; // Will go fuel if below
 var safeDistance = 2000000; // If the system is 2m km from the fleet range, we won't go there (need to fix the math a-bit)
 var zoomOutNumber = 3000; // The zoomout after failing finding unexplored system.
+var autoMove = true;
+var enemiesFunctions = ['Jarnekk','Scaldarians'];
 
 (function() {
     'use strict';
-    setTimeout(loadButton, 600);
+    setTimeout(loadButton, 500);
     setTimeout(pressTheButton, 250);
 })();
 
@@ -65,7 +70,15 @@ function pressTheButton() {
     if (document.URL.indexOf('callback=1') > 0) {
         document.getElementById('objective').value='explore';
         getMission('launch');
+        if (autoMove == true)
+            nextFleet();
     }
+}
+
+function nextFleet() {
+    var allFleets = document.getElementsByClassName('padding5 inlineblock light box');
+        if (allFleets.length > 0)
+            window.location = allFleets[0].href;
 }
 
 // End On-Load Functions
@@ -110,7 +123,8 @@ function run() {
                         let finalPlanet = optionsElements[2].value.split(',')[1]
                         document.getElementById('target1').value='tworld,' + finalPlanet;
                         getMission("verify", "target1")
-                        return setTimeout(getMission('launch'),250);
+                        setTimeout(getMission('launch'),250);
+                        return setTimeout(nextFleet(), 500);
                     }
                 }
                 else {
@@ -137,7 +151,7 @@ function findWH(){
         {
             checkForWH().then(function(isWH) {
                 if (isWH == true){
-                    alert('Found Wormhole!');
+                    alert('Wormhole! / Enemy');
                     return reject('Wormhole');
                 }
 
@@ -171,6 +185,17 @@ function checkForWH(){
                 if (All[i].innerHTML == 'Wormhole!')
                     return fulfill(true);
             }
+
+            var fleets = newDiv.getElementsByClassName('tbborder padding5 light')
+            for (let i =0 ; i < fleets.length; i++)
+            {
+                for (let j = 0; j < enemiesFunctions.length; j++)
+                {
+                    if (fleets[i].innerHTML.indexOf(enemiesFunctions[j]) > 0)
+                        return fulfill(true);
+                }
+            }
+
             return fulfill(false);
         });
     });
@@ -307,6 +332,7 @@ function findUnexploredJSV2(url) {
             {
                 let eachValue = eachLine[i].split('\t');
                 if (eachValue[6] != 'unexplored') continue;
+                if (eachValue[1] == 'p') continue;
 
                 let newCords = buildCordsObject(eachValue[3], eachValue[4], eachValue[5]);
                 if (eachValue[3] > 1000000) continue;
