@@ -14,13 +14,10 @@
 
 // TODO: Sort By Distance
 
-
-/* Button Actions Functions */
-
 setupButtons();
 addDataToResults();
 
-
+/* Button Actions Functions */
 
 function setupButtons() {
     createButton('xyz', 'Mining Colony', setupMiningColony);
