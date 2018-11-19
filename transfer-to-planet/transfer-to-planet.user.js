@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Transfer to Planet
 // @namespace    github.com/odahviing/warfacts
-// @version      0.3
+// @version      0.4
 // @description  Provide option to send fleet to planet directly
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -10,6 +10,7 @@
 
 // Version 0.1 - Beta Version
 // Version 0.2/3 - Add setTimeout
+// Version 0.4 - Fix verify bug
 
 (function() {
     'use strict';
@@ -20,27 +21,29 @@
 })();
 
 function prepareScript() {
-    setTimeout(addOption,300);
-    setTimeout(hookButton,300);
+    setTimeout(addOption, 300);
+    setTimeout(hookButton, 300);
 }
 
 function addOption() {
     var fleetOption = document.getElementById('tpos');
-    fleetOption.innerHTML = fleetOption.innerHTML + `<option value="planet">Planet</option>`
+    if (fleetOption)
+        fleetOption.innerHTML = fleetOption.innerHTML + `<option value="planet">Planet</option>`;
 
 }
 
 function hookButton() {
     originalGetMission = getMission;
     getMission = function(str1, str2) {
-        if (document.getElementById('tpos').value == 'planet')
-        {
+        if (!document.getElementById('tpos') || document.getElementById('tpos').value != 'planet') {
+            return originalGetMission(str1, str2);
+        }
+        else {
             let planetId = document.getElementById('xyz').value;
             let fleetId = getFleetNumber();
             window.location = `/fleet.php?tworld=${planetId}&fleet=${fleetId}#press=1`;
+            return;
         }
-        else
-            originalGetMission('verify', 'c');
     }
 }
 
