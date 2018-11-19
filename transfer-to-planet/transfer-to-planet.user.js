@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Transfer to Planet
 // @namespace    github.com/odahviing
-// @version      0.1
+// @version      0.2
 // @description  Provide option to send fleet to planet directly
 // @author       Odahviing
-// @match        http://www.war-facts.com/fleet.php?*
+// @match        http://www.war-facts.com/fleet*
 // @grant        none
 // ==/UserScript==
 
@@ -19,8 +19,8 @@
 })();
 
 function prepareScript() {
-    addOption();
-    hookButton();
+    setTimeout(addOption,150);
+    setTimeout(hookButton,150);
 }
 
 function addOption() {
