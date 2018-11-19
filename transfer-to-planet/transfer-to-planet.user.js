@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Transfer to Planet
-// @namespace    github.com/odahviing
-// @version      0.2
+// @namespace    github.com/odahviing/warfacts
+// @version      0.3
 // @description  Provide option to send fleet to planet directly
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -9,18 +9,19 @@
 // ==/UserScript==
 
 // Version 0.1 - Beta Version
+// Version 0.2/3 - Add setTimeout
 
 (function() {
     'use strict';
     if (isCallBack() == true)
-        setTimeout(pressTheButton, 200);
+        setTimeout(pressTheButton, 250);
     else
         prepareScript()
 })();
 
 function prepareScript() {
-    setTimeout(addOption,150);
-    setTimeout(hookButton,150);
+    setTimeout(addOption,300);
+    setTimeout(hookButton,300);
 }
 
 function addOption() {
