@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sensor Net Manager
 // @namespace    github.com/odahviing/warfacts
-// @version      0.1
+// @version      0.2
 // @description  Next Generation Sensor Net
 // @author       Odahviing
 // @match        http://www.war-facts.com/sensorArray.php
@@ -56,7 +56,9 @@ function readInputs(_this) {
 
 function update(){
     var networkData = readInputs(this);
+    if (networkData.Name == "") return;
     saveNode(networkData);
+    alert('Added / Updated');
 }
 
 function del() {
@@ -198,7 +200,7 @@ function buildRow(cords, range) {
     return thisLists;
 }
 
-function sTc(level) {return level * 50;}
+function sTc(level) {return level * 50 * 2;}
 
 function cTr(cords) {return cords * 4000};
 
