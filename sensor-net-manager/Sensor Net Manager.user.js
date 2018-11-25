@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sensor Net Manager
 // @namespace    github.com/odahviing/warfacts
-// @version      0.2
+// @version      0.3
 // @description  Next Generation Sensor Net
 // @author       Odahviing
 // @match        http://www.war-facts.com/sensorArray.php
@@ -82,6 +82,7 @@ function view(){
 
     for (let i = 1; i <= allPoints.length; i++) {
         document.getElementById(`sendButton${i}`).addEventListener("click", sendFleet);
+        document.getElementById(`bookmark${i}`).addEventListener("click", bookmarkFleet);
     }
 }
 
@@ -104,12 +105,12 @@ function verifyAll() {
             let theCords = Cords(lineCord[0],lineCord[1],lineCord[2]);
             let exists = fleetList.findIndex(x => isEqual(x.Cords, theCords));
             if (exists == -1) {
-                allTds[3].innerHTML = 'Missing';
-                allTds[3].style.color = "red"
+                allTds[4].innerHTML = 'Missing';
+                allTds[4].style.color = "red"
             }
             else {
-                allTds[3].innerHTML = allActive.findIndex(fleetList[exists].Id) >= 0 ? 'Listening' : 'In-Place';
-                allTds[4].value = fleetList[exists].Id;
+                allTds[4].innerHTML = allActive.findIndex(fleetList[exists].Id) >= 0 ? 'Listening' : 'In-Place';
+                allTds[5].value = fleetList[exists].Id;
             }
         }
     });
@@ -136,11 +137,22 @@ function getFleetList() {
 function sendFleet() {
     var row = this.parentElement.parentElement;
     var allColumns = row.getElementsByTagName('td');
-    let value = allColumns[4].getElementsByTagName('input')[0].value;
+    let value = allColumns[5].getElementsByTagName('input')[0].value;
     if (value == "") return;
-    let lineCord = allColumns[1].innerHTML.split(', ');
+    let lineCord = allColumns[2].innerHTML.split(', ');
     let theCords = Cords(lineCord[0],lineCord[1],lineCord[2]);
     window.open(`http://www.war-facts.com/fleet.php?tpos=global&x=${lineCord[0]}&y=${lineCord[1]}&z=${lineCord[2]}&fleet=${value}`, '_blank');
+    return;
+}
+
+function bookmarkFleet() {
+    var row = this.parentElement.parentElement;
+    var allColumns = row.getElementsByTagName('td');
+    let value = allColumns[1].getElementsByTagName('input')[0].value;
+    if (value == "") return;
+    let lineCord = allColumns[2].innerHTML.split(', ');
+    let theCords = Cords(lineCord[0],lineCord[1],lineCord[2]);
+    window.open(`http://www.war-facts.com/empire_rally_points.php?x=${lineCord[0]}&y=${lineCord[1]}&z=${lineCord[2]}&rallyname=${value}`, '_blank');
     return;
 }
 
@@ -153,6 +165,7 @@ function getAllCords(cords, level, fuel) {
     let scanRange = cTr(scanPoints);
 
     let count = Math.ceil(fuel / (scanRange * 2), 1);
+
     var allCords = [];
 
     allCords = allCords.concat(buildRow(cords, scanPoints));
@@ -169,9 +182,13 @@ function getAllCords(cords, level, fuel) {
         let sign = cord.X+""+cord.Y+""+cord.Z;
         if(!map.has(sign)){
             map.set(sign, true);    // set any value to Map
-            uniqueCords.push(cord);
+
+            if (getDistance(cord, cords)<= fuel)
+                uniqueCords.push(cord);
         }
     }
+
+
 
     return uniqueCords;
 }
@@ -367,6 +384,7 @@ function addHeader() {
 		<table id="table-data" style="width:100%">
 			<thead class="dark tbborder">
 				<td class="padding5" align="center">Id</td>
+<td class="padding5" align="center">Name</td>
 				<td class="padding5" align="center">Cords</td>
 				<td class="padding5" align="center">Distance</td>
 				<td class="padding5" align="center">Sensor Status</td>
@@ -379,11 +397,13 @@ function addHeader() {
 function newRaw(index, cords, distance) {
     return `<tr class="dark tbborder">
         <td align="center">${index}</td>
+<td align="center"><input type="text" class="darkinput" placeholder="Fleet Name For Bookmarking" value="" /></td>
     <td align="center">${toCords(cords)}</td>
     <td align="center">${toNumber(distance)} km</td>
     <td align="center">Check</td>
     <td align="center"><input type="text" class="darkinput" placeholder="Add Fleet Number" value="" /></td>
-<td><input type="text" class="darkbutton" value="Send" id="sendButton${index}" /></td>
+<td><input type="text" class="darkbutton" value="Send" id="sendButton${index}" />
+<input type="text" class="darkbutton" value="Bookmark" id="bookmark${index}" /></td>
     </tr>`;
 }
 
