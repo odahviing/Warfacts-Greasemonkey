@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
-// @namespace    github.com/odahviing/warfacts-greasemonkey
-// @version      2.7
+// @namespace    github.com/odahviing/warfacts
+// @version      2.8
 // @description  Ease your exploration mission with automatic smart exploring logic for probing, in a single click
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -34,22 +34,50 @@
 // -- Auto move to next free explorer
 // -- Alert if enemy fleet detected
 
+// Version 2.8
+// - Connect "sent to planet script"
+
+
 // TODO:
 // -- Fix Numbering ! My cords is off
 
 // Settings
 
 var JavaScriptV2 = true; // It seems to work on every UI and faster, so no need to use the old code.
+
+// Settings
 var minimumFuelAmount = 50000000; // Will go fuel if below
-var safeDistance = 2000000; // If the system is 2m km from the fleet range, we won't go there (need to fix the math a-bit)
+var safeDistance = 5000000; // If the system is 2m km from the fleet range, we won't go there (need to fix the math a-bit)
 var zoomOutNumber = 3000; // The zoomout after failing finding unexplored system.
-var autoMove = true;
-var enemiesFunctions = ['Jarnekk','Scaldarians'];
+
+// Alerts For Enemies
+var showEnemies = true;
+var enemiesFactions = ['Jarnekk','Scaldarians'];
+
+// Filter Next Fleets By Name
+var whiteList = false;
+var fleetsName = ['Alpha', 'Delta', 'Epsilon', 'Kappa', 'Lambda'];
+var abortletter = "#";
+
+var autoSwitchToNextFleet = true;
+var fullAuto = false;
 
 (function() {
     'use strict';
-    setTimeout(loadButton, 500);
-    setTimeout(pressTheButton, 250);
+    var timers = (fullAuto == true) ?
+        {button : 600, mission : 400, explore : 1000, refresh: 10000, hookPlanet: 1000} :
+    {button : 550, mission : 250, hookPlanet:300};
+
+    setTimeout(loadButton, timers.button);
+    setTimeout(prepareHoolingPlanet, timers.hookPlanet);
+    setTimeout(pressTheButton, timers.mission);
+    if (fullAuto == true)
+    {
+        setTimeout(pressExplore, timers.explore);
+        setTimeout(reloadPage, timers.refresh);
+
+    }
+
 })();
 
 // On-Load Functions
@@ -57,7 +85,8 @@ var enemiesFunctions = ['Jarnekk','Scaldarians'];
 function loadButton() {
     let newButton = document.createElement('input');
     newButton.type = 'button'
-    newButton.value = 'Explore'
+    newButton.value = 'Explore';
+    newButton.id = 'ExploreButton';
     newButton.style = 'width: 130px;'
     newButton.className = 'darkbutton dangerbutton';
     newButton.addEventListener("click", run);
@@ -70,15 +99,43 @@ function pressTheButton() {
     if (document.URL.indexOf('callback=1') > 0) {
         document.getElementById('objective').value='explore';
         getMission('launch');
-        if (autoMove == true)
+        if (autoSwitchToNextFleet == true)
+            nextFleet();
+    }
+}
+
+function pressExplore() {
+    if (document.URL.indexOf('auto=1') > 0) {
+        let getButton = document.getElementById('ExploreButton');
+        if (getButton)
+            getButton.click();
+        else
             nextFleet();
     }
 }
 
 function nextFleet() {
     var allFleets = document.getElementsByClassName('padding5 inlineblock light box');
-        if (allFleets.length > 0)
-            window.location = allFleets[0].href;
+    if (whiteList == false) {
+        window.location = allFleets[0].href + (fullAuto == true ? "#auto=1" : "");
+        return;
+    }
+
+    for (let i = 0; i < allFleets.length; i++)
+    {
+        let exists = fleetsName.findIndex(x => allFleets[i].innerHTML.indexOf(x) >= 0);
+        if (exists >= 0) {
+            if (allFleets[i].innerHTML.indexOf(abortletter) >= 0) continue;
+
+            window.location = allFleets[i].href + (fullAuto == true ? "#auto=1" : "");
+            return;
+        }
+    }
+}
+
+function reloadPage() {
+    if (document.URL.indexOf('auto=1') > 0)
+        location.reload();
 }
 
 // End On-Load Functions
@@ -124,7 +181,9 @@ function run() {
                         document.getElementById('target1').value='tworld,' + finalPlanet;
                         getMission("verify", "target1")
                         setTimeout(getMission('launch'),250);
-                        return setTimeout(nextFleet(), 500);
+                        if (autoSwitchToNextFleet == true)
+                            setTimeout(nextFleet(), 500);
+                        return ;
                     }
                 }
                 else {
@@ -186,12 +245,14 @@ function checkForWH(){
                     return fulfill(true);
             }
 
+            if (showEnemies == false)
+                return fulfill(false);
             var fleets = newDiv.getElementsByClassName('tbborder padding5 light')
             for (let i =0 ; i < fleets.length; i++)
             {
-                for (let j = 0; j < enemiesFunctions.length; j++)
+                for (let j = 0; j < enemiesFactions.length; j++)
                 {
-                    if (fleets[i].innerHTML.indexOf(enemiesFunctions[j]) > 0)
+                    if (fleets[i].innerHTML.indexOf(enemiesFactions[j]) > 0)
                         return fulfill(true);
                 }
             }
@@ -353,7 +414,7 @@ function findUnexploredJSV2(url) {
                 {
                     let newCords = allOptions[i].C;
                     console.log(`Auto-Exploration: Decided To Explore Option ${i+1}: (${newCords.X},${newCords.Y},${newCords.Z})`);
-                    return fulfill(`http://www.war-facts.com/fleet.php?tpos=global&x=${newCords.X}&y=${newCords.Y}&z=${newCords.Z}&fleet=${fleetNumber}&callback=1`);
+                    return fulfill(`http://www.war-facts.com/fleet.php?tpos=global&x=${newCords.X}&y=${newCords.Y}&z=${newCords.Z}&fleet=${fleetNumber}#callback=1`);
                 }
             }
             return fulfill(false);
@@ -373,6 +434,37 @@ function extractLink(url) {
 }
 
 // End Find Unexplored System Functions
+
+// Transfer to Planet Script
+
+function prepareHoolingPlanet() {
+    addOption();
+    hookButton();
+}
+
+function addOption() {
+    var fleetOption = document.getElementById('tpos');
+    if (fleetOption)
+        fleetOption.innerHTML = fleetOption.innerHTML + `<option value="planet">Planet</option>`;
+
+}
+
+function hookButton() {
+    originalGetMission = getMission;
+    getMission = function(str1, str2) {
+        if (!document.getElementById('tpos') || document.getElementById('tpos').value != 'planet') {
+            return originalGetMission(str1, str2);
+        }
+        else {
+            let planetId = document.getElementById('xyz').value;
+            let fleetId = getFleetNumber();
+            window.location = `/fleet.php?tworld=${planetId}&fleet=${fleetId}#callback=1`;
+            return;
+        }
+    }
+}
+
+// End Transfer to Planet Script
 
 // Utilities Functions
 
