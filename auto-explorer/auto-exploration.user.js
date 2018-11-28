@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts
-// @version      2.8
+// @version      2.9
 // @description  Ease your exploration mission with automatic smart exploring logic for probing, in a single click
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -34,15 +34,11 @@
 // -- Auto move to next free explorer
 // -- Alert if enemy fleet detected
 
-// Version 2.8
-// - Connect "sent to planet script"
+// Version 2.8 - Connect "sent to planet script"
 
-
-// TODO:
-// -- Fix Numbering ! My cords is off
+// Version 2.9 - Restore Old internal explore planets
 
 // Settings
-
 var JavaScriptV2 = true; // It seems to work on every UI and faster, so no need to use the old code.
 
 // Settings
@@ -51,16 +47,16 @@ var safeDistance = 5000000; // If the system is 2m km from the fleet range, we w
 var zoomOutNumber = 3000; // The zoomout after failing finding unexplored system.
 
 // Alerts For Enemies
-var showEnemies = true;
+var showEnemies = false;
 var enemiesFactions = ['Jarnekk','Scaldarians'];
 
 // Filter Next Fleets By Name
-var whiteList = false;
+var whiteList = true;
 var fleetsName = ['Alpha', 'Delta', 'Epsilon', 'Kappa', 'Lambda'];
 var abortletter = "#";
 
 var autoSwitchToNextFleet = true;
-var fullAuto = false;
+var fullAuto = true;
 
 (function() {
     'use strict';
@@ -69,15 +65,14 @@ var fullAuto = false;
     {button : 550, mission : 250, hookPlanet:300};
 
     setTimeout(loadButton, timers.button);
-    setTimeout(prepareHoolingPlanet, timers.hookPlanet);
+    setTimeout(addInternalButton, timers.button);
+    setTimeout(addVerifyPlanetButton, timers.hookPlanet);
     setTimeout(pressTheButton, timers.mission);
     if (fullAuto == true)
     {
         setTimeout(pressExplore, timers.explore);
         setTimeout(reloadPage, timers.refresh);
-
     }
-
 })();
 
 // On-Load Functions
@@ -85,7 +80,7 @@ var fullAuto = false;
 function loadButton() {
     let newButton = document.createElement('input');
     newButton.type = 'button'
-    newButton.value = 'Explore';
+    newButton.value = 'System';
     newButton.id = 'ExploreButton';
     newButton.style = 'width: 130px;'
     newButton.className = 'darkbutton dangerbutton';
@@ -437,7 +432,7 @@ function extractLink(url) {
 
 // Transfer to Planet Script
 
-function prepareHoolingPlanet() {
+function addVerifyPlanetButton() {
     addOption();
     hookButton();
 }
@@ -446,7 +441,6 @@ function addOption() {
     var fleetOption = document.getElementById('tpos');
     if (fleetOption)
         fleetOption.innerHTML = fleetOption.innerHTML + `<option value="planet">Planet</option>`;
-
 }
 
 function hookButton() {
@@ -465,6 +459,79 @@ function hookButton() {
 }
 
 // End Transfer to Planet Script
+
+// Internal Explore
+
+var wantedPlanet;
+
+function addInternalButton()
+{
+    let amIExplorer = document.getElementById('fleetClass').innerHTML;
+    let planetsList = [];
+
+    // Check if we have Explorer Fleet and that we are not flying
+    if (amIExplorer != 'Explorer' && amIExplorer != 'Sentry') return;
+
+    let objc = document.getElementById('objective');
+    if (objc == undefined) return;
+    objc.value='explore';
+
+    // Get all Planets
+    let optionsElements = document.getElementById('target1').getElementsByTagName('option');
+    for (let index = 2; index < optionsElements.length; index++)
+        planetsList.push(optionsElements[index].value.split(',')[1]);
+
+    // Get My Location
+    let myCords = document.getElementsByClassName('light tbborder padding5')[3].getElementsByTagName('a')[0].innerHTML;
+    if (myCords == '100, 100, 100 local')
+        wantedPlanet = planetsList[0];
+    else
+    {
+        let baseLink = document.getElementsByClassName('tbborder highlight overauto')[0].getElementsByTagName('A')[0].href;
+        if (baseLink.indexOf('colony') >= 0)
+            baseLink = document.getElementsByClassName('tbborder highlight overauto')[0].getElementsByTagName('A')[1].href;
+        let extractPlanet = baseLink.substring(baseLink.indexOf('planet=')+7, baseLink.indexOf('fleet=') -1);
+        let tmpPlanet = planetsList.findIndex(x => x == extractPlanet);
+        if (tmpPlanet == planetsList.length - 1)
+            wantedPlanet = -1;
+        else
+            wantedPlanet = planetsList[tmpPlanet+1];
+    }
+
+    if (wantedPlanet == -1) return;
+
+    let newButton = document.createElement('input');
+    newButton.type = 'button'
+    newButton.value = 'Planet';
+    newButton.style = 'width: 130px;'
+    newButton.className = 'darkbutton dangerbutton';
+    newButton.addEventListener("click", exploreNextPlanet);
+    document.getElementsByClassName('iBlock tbborder padding5 fullwidth light')[0].insertBefore(newButton, null);
+}
+
+function exploreNextPlanet() {
+    let optionsElements = document.getElementById('target1')
+    optionsElements.value='tworld,' + wantedPlanet;
+    getMission("verify", "target1")
+    setTimeout(getMission('launch'),100);
+    if (autoSwitchToNextFleet == true)
+        nextFleet();
+}
+
+// End Internal Explore
+
+// Control Panel Functions
+
+function buildMenu() {
+}
+
+function loadSettings() {
+}
+
+function saveSettings() {
+}
+
+// End
 
 // Utilities Functions
 
