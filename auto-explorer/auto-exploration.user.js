@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts
-// @version      2.9
+// @version      2.91
 // @description  Ease your exploration mission with automatic smart exploring logic for probing, in a single click
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -230,7 +230,7 @@ function checkIf100x3() {
 
 function checkForWH(){
     return new Promise(function (fulfill, reject){
-        var link = document.getElementsByClassName('darkbutton')[2].onclick.toString();
+        var link = document.getElementsByClassName('darkbutton')[3].onclick.toString();
         link = "http://www.war-facts.com/extras/scan.php" + link.substring(link.indexOf('?'), link.indexOf("')"));
         divAjaxRequest("GET", link, true, true, null).then(function(newDiv) {
             var All = newDiv.getElementsByTagName('i');
