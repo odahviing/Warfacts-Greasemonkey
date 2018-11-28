@@ -82,7 +82,7 @@ function loadButton() {
     newButton.type = 'button'
     newButton.value = 'System';
     newButton.id = 'ExploreButton';
-    newButton.style = 'width: 130px;'
+    newButton.style = 'width: 80px;'
     newButton.className = 'darkbutton dangerbutton';
     newButton.addEventListener("click", run);
     var buttonPlace = document.getElementsByClassName('iBlock tbborder padding5 fullwidth light')[0];
@@ -503,7 +503,7 @@ function addInternalButton()
     let newButton = document.createElement('input');
     newButton.type = 'button'
     newButton.value = 'Planet';
-    newButton.style = 'width: 130px;'
+    newButton.style = 'width: 80px;'
     newButton.className = 'darkbutton dangerbutton';
     newButton.addEventListener("click", exploreNextPlanet);
     document.getElementsByClassName('iBlock tbborder padding5 fullwidth light')[0].insertBefore(newButton, null);
