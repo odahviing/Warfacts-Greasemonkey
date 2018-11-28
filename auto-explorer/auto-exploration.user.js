@@ -47,16 +47,16 @@ var safeDistance = 5000000; // If the system is 2m km from the fleet range, we w
 var zoomOutNumber = 3000; // The zoomout after failing finding unexplored system.
 
 // Alerts For Enemies
-var showEnemies = false;
+var showEnemies = true;
 var enemiesFactions = ['Jarnekk','Scaldarians'];
 
 // Filter Next Fleets By Name
-var whiteList = true;
+var whiteList = false;
 var fleetsName = ['Alpha', 'Delta', 'Epsilon', 'Kappa', 'Lambda'];
 var abortletter = "#";
 
 var autoSwitchToNextFleet = true;
-var fullAuto = true;
+var fullAuto = false;
 
 (function() {
     'use strict';
