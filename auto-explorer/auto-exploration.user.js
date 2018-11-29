@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts
-// @version      2.91
+// @version      2.92
 // @description  Ease your exploration mission with automatic smart exploring logic for probing, in a single click
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -61,8 +61,8 @@ var fullAuto = false;
 (function() {
     'use strict';
     var timers = (fullAuto == true) ?
-        {button : 600, mission : 400, explore : 1000, refresh: 10000, hookPlanet: 1000} :
-    {button : 550, mission : 250, hookPlanet:300};
+        {button : 600, mission : 500, explore : 1000, refresh: 10000, hookPlanet: 500} :
+    {button : 600, mission : 400, hookPlanet: 300};
 
     setTimeout(loadButton, timers.button);
     setTimeout(addInternalButton, timers.button);
