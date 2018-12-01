@@ -1,12 +1,15 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts
-// @version      2.92
+// @version      3.0
 // @description  Ease your exploration mission with automatic smart exploring logic for probing, in a single click
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
+// @match        http://www.war-facts.com/player.php
 // @exclude      http://www.war-facts.com/fleet.php?mtype*
-// @grant        none
+// @require      https://raw.githubusercontent.com/odahviing/warfacts-greasemonkey/master/utilities/networks.js
+// @grant        GM_getValue
+// @grant        GM_setValue
 // ==/UserScript==
 
 // Version 1.0 - Base Exploring Support
@@ -20,9 +23,9 @@
 // -- Bug fix when the button is not ready to load
 // -- Design a different way to auto-press the button
 
-// Version 2.2 -- Fix a stupid bug that ignore places that had x value of aboue 300000 (so almost every galaxy outside Alpha)
-// Version 2.3 -- Code Beautifier
-// Version 2.4 -- Change settings so the closest system will be explored, but without duplicate systems
+// Version 2.2 - Fix a stupid bug that ignore places that had x value of aboue 300000 (so almost every galaxy outside Alpha)
+// Version 2.3 - Code Beautifier
+// Version 2.4 - Change settings so the closest system will be explored, but without duplicate systems
 
 // Version 2.5
 // -- Change to only one data cycle, too heavy otherwise
@@ -34,33 +37,32 @@
 // -- Auto move to next free explorer
 // -- Alert if enemy fleet detected
 
-// Version 2.8 - Connect "sent to planet script"
+// Version 2.8 - Connect "sent to planet" script to Auto-Exploration
+// Version 2.9 - Restore Old internal explore planets (auto-explore)
+// Version 3.0 - Management Panel
 
-// Version 2.9 - Restore Old internal explore planets
-
-// Settings
-var JavaScriptV2 = true; // It seems to work on every UI and faster, so no need to use the old code.
-
-// Settings
-var minimumFuelAmount = 50000000; // Will go fuel if below
-var safeDistance = 5000000; // If the system is 2m km from the fleet range, we won't go there (need to fix the math a-bit)
-var zoomOutNumber = 3000; // The zoomout after failing finding unexplored system.
-
-// Alerts For Enemies
-var showEnemies = true;
-var enemiesFactions = ['Jarnekk','Scaldarians'];
-
-// Filter Next Fleets By Name
-var whiteList = false;
-var fleetsName = ['Alpha', 'Delta', 'Epsilon', 'Kappa', 'Lambda'];
-var abortletter = "#";
-
+// Default Settings
 var autoSwitchToNextFleet = true;
 var fullAuto = false;
+var safeDistance = 5000000; // If the system is 2m km from the fleet range, we won't go there (need to fix the math a-bit)
+var whiteList = false;
+var fleetsName = [];
+var abortletter = ['#'];
+var showEnemies = true;
+var enemiesFactions = ['Jarnekk','Scaldarians'];
+var minimumFuelAmount = 50000000; // Will go fuel if below
+
+var settings = loadSettings();
 
 (function() {
     'use strict';
-    var timers = (fullAuto == true) ?
+
+    if (document.URL.indexOf('player.php') >= 0) {
+        buildMenu();
+        return;
+    }
+
+    var timers = (settings.fullAuto == true) ?
         {button : 600, mission : 500, explore : 1000, refresh: 10000, hookPlanet: 500} :
     {button : 600, mission : 400, hookPlanet: 300};
 
@@ -68,7 +70,7 @@ var fullAuto = false;
     setTimeout(addInternalButton, timers.button);
     setTimeout(addVerifyPlanetButton, timers.hookPlanet);
     setTimeout(pressTheButton, timers.mission);
-    if (fullAuto == true)
+    if (settings.fullAuto == true)
     {
         setTimeout(pressExplore, timers.explore);
         setTimeout(reloadPage, timers.refresh);
@@ -94,7 +96,7 @@ function pressTheButton() {
     if (document.URL.indexOf('callback=1') > 0) {
         document.getElementById('objective').value='explore';
         getMission('launch');
-        if (autoSwitchToNextFleet == true)
+        if (settings.nextAuto == true)
             nextFleet();
     }
 }
@@ -111,16 +113,16 @@ function pressExplore() {
 
 function nextFleet() {
     var allFleets = document.getElementsByClassName('padding5 inlineblock light box');
-    if (whiteList == false) {
+    if (settings.whiteList == false) {
         window.location = allFleets[0].href + (fullAuto == true ? "#auto=1" : "");
         return;
     }
 
     for (let i = 0; i < allFleets.length; i++)
     {
-        let exists = fleetsName.findIndex(x => allFleets[i].innerHTML.indexOf(x) >= 0);
+        let exists = settings.goodNames.findIndex(x => allFleets[i].innerHTML.indexOf(x) >= 0);
         if (exists >= 0) {
-            if (allFleets[i].innerHTML.indexOf(abortletter) >= 0) continue;
+            if (allFleets[i].innerHTML.indexOf(settings.badletter) >= 0) continue;
 
             window.location = allFleets[i].href + (fullAuto == true ? "#auto=1" : "");
             return;
@@ -150,7 +152,7 @@ function getFleetNumber() {
 
 function getFleetRange() {
     let elem = document.getElementById('fleetRange').innerHTML;
-    return parseInt(elem.replace(',','').replace(',','').replace(',','')) - safeDistance;
+    return parseInt(elem.replace(',','').replace(',','').replace(',','')) - settings.safeDistance;
 }
 
 function getFuelAmount() {
@@ -164,7 +166,7 @@ function run() {
     fleetFuel = getFuelAmount();
     findWH().then(function(status) {
         var baseUrlLink = getMapUrl();
-        findUnexplored(baseUrlLink).then(function(result) {
+        findUnexploredJSV2(baseUrlLink).then(function(result) {
             if (result == false) {
                 if (fleetFuel < minimumFuelAmount) {
                     console.log(`Auto-Exploration: Will Try to Refuel Probe, Only Has: ${fleetFuel.toString().replace(/(\d)(?=(\d{3})+$)/g, '$1,')} Left`);
@@ -176,7 +178,7 @@ function run() {
                         document.getElementById('target1').value='tworld,' + finalPlanet;
                         getMission("verify", "target1")
                         setTimeout(getMission('launch'),250);
-                        if (autoSwitchToNextFleet == true)
+                        if (settings.nextAuto == true)
                             setTimeout(nextFleet(), 500);
                         return ;
                     }
@@ -240,14 +242,14 @@ function checkForWH(){
                     return fulfill(true);
             }
 
-            if (showEnemies == false)
+            if (settings.alertEnemies == false)
                 return fulfill(false);
             var fleets = newDiv.getElementsByClassName('tbborder padding5 light')
             for (let i =0 ; i < fleets.length; i++)
             {
-                for (let j = 0; j < enemiesFactions.length; j++)
+                for (let j = 0; j < settings.enemiesFactions.length; j++)
                 {
-                    if (fleets[i].innerHTML.indexOf(enemiesFactions[j]) > 0)
+                    if (fleets[i].innerHTML.indexOf(settings.enemiesFactions[j]) > 0)
                         return fulfill(true);
                 }
             }
@@ -258,90 +260,6 @@ function checkForWH(){
 }
 
 // End Fleet Page Functions
-
-// Find Unexplored System Functions
-
-function findUnexplored(url) {
-    return new Promise(function (fulfill, reject){
-        switch (JavaScriptV2)
-        {
-            case true:
-                return fulfill(findUnexploredJSV2(url));
-            case false:
-                return fulfill(extractFinalLink(findUnexploredPseudo(url, 0)));
-                break;
-        }
-    });
-}
-
-function getMapUrl() {
-    var allNavs = document.getElementById('navData').getElementsByClassName('light tbborder padding5');
-    var textItem = allNavs[allNavs.length - 1].innerHTML;
-    let url = 'http://www.war-facts.com/extras/view_universe.php' + textItem.substring(textItem.indexOf('?'), textItem.indexOf("')")).replace('&amp;','&').replace('&amp;','&').replace('&amp;','&');
-    return url;
-}
-
-function replaceDeepUrl(url, zoomOut) {
-    let leftSide = url.substring(0,url.indexOf("&z=")+3);
-    url = url.replace(leftSide, "");
-    let finalParts = url.split('&');
-    let newNumberString = (parseInt(finalParts[0]) + zoomOut);
-    url = leftSide + newNumberString + "&" + finalParts[1];
-    return url;
-}
-
-// pseudo 3D CSS - Functions
-
-var maxCount = 5;
-
-function findUnexploredPseudo(url, count = 0) {
-    return new Promise(function (fulfill, reject){
-        if (count == 0)
-            url = replaceDeepUrl(url, 5000);
-
-        if (count == maxCount) return fulfill(false);
-        sendAjaxRequest("GET", url, true, true, null).then(function (html) {
-            var parentDiv = document.createElement('div');
-            parentDiv.attachShadow({mode: 'open'});
-            var div = parentDiv.shadowRoot.appendChild(document.createElement('div'));
-            div.innerHTML = html;
-            div.style.display = 'none';
-            document.body.appendChild(parentDiv);
-
-            var allStars = div.getElementsByTagName('a');
-            var nums = createShuffleArray(allStars.length);
-
-            for (let i = 0; i < allStars.length; i++)
-            {
-                var spanObject = allStars[nums[i]].getElementsByTagName('span')[0];
-                if (!spanObject) continue;
-
-                if (spanObject.innerHTML == '? unexplored ?')
-                {
-                    if ('rgb(255, 0, 0)' == getComputedStyle(spanObject)['color']) continue;
-                    let nextLink = "http://www.war-facts.com/extras/view_system.php" + allStars[nums[i]].href.substring(allStars[nums[i]].href.indexOf('?'), allStars[nums[i]].href.indexOf("')"));
-                    document.body.removeChild(parentDiv);
-                    return fulfill(nextLink);
-                }
-            }
-
-            document.body.removeChild(parentDiv);
-            url = replaceDeepUrl(url, zoomOutNumber);
-
-            return fulfill(findUnexploredPseudo(url, count + 1));
-        });
-    });
-}
-
-function extractFinalLink(url) {
-    return new Promise(function (fulfill, reject){
-        if (url == false)
-            return fulfill(url);
-        divAjaxRequest("GET", url, true, true, null).then(function(newDiv) {
-            return fulfill(newDiv.getElementsByTagName('a')[0].href);
-        });
-    });
-}
 
 // Javascript V2 - Functions
 
@@ -417,6 +335,13 @@ function findUnexploredJSV2(url) {
     });
 }
 
+function getMapUrl() {
+    var allNavs = document.getElementById('navData').getElementsByClassName('light tbborder padding5');
+    var textItem = allNavs[allNavs.length - 1].innerHTML;
+    let url = 'http://www.war-facts.com/extras/view_universe.php' + textItem.substring(textItem.indexOf('?'), textItem.indexOf("')")).replace('&amp;','&').replace('&amp;','&').replace('&amp;','&');
+    return url;
+}
+
 function extractLink(url) {
     let values = url.split('?');
     let cords = values[1].split('&');
@@ -466,6 +391,7 @@ var wantedPlanet;
 
 function addInternalButton()
 {
+    if (document.URL.indexOf('callback=1') >= 0) return;
     let amIExplorer = document.getElementById('fleetClass').innerHTML;
     let planetsList = [];
 
@@ -514,7 +440,7 @@ function exploreNextPlanet() {
     optionsElements.value='tworld,' + wantedPlanet;
     getMission("verify", "target1")
     setTimeout(getMission('launch'),100);
-    if (autoSwitchToNextFleet == true)
+    if (settings.nextAuto == true)
         nextFleet();
 }
 
@@ -523,59 +449,122 @@ function exploreNextPlanet() {
 // Control Panel Functions
 
 function buildMenu() {
+    let lastEle = document.getElementsByClassName('margintop padding5 highlight bold centertext box')[5];
+    let div = document.createElement('div');
+
+    div.className = "light";
+    div.innerHTML = addMenu('autoExplore', "Auto-Explore").outerHTML;
+    div.innerHTML += addRow(addCheckBox('autoNext', 'Auto Choose Next Free Explorer', settings.nextAuto)).outerHTML;
+    div.innerHTML += addRow(addCheckBox('fullAuto', 'Auto Send Probes to Exploration (Warning - Might not be allowed - Requires AutoNext)', settings.fullAuto)).outerHTML;
+    div.innerHTML += addRow(addCheckBox('detectEnemies', 'Alert When Detect Enemies (Message Box)', settings.alertEnemies)).outerHTML;
+    div.innerHTML += addRow(addTextBox('enemiesFactions', 'Add Enemies Factions (Fleets from this factions will be alerted - Seperate with `;` )', settings.enemyFactions.join(';'), 100)).outerHTML;
+    div.innerHTML += addRow(addTextBox('safeDistance', 'Safe Distance (km - Reduce Destination Range)', settings.safeDistance)).outerHTML;
+    div.innerHTML += addRow(addCheckBox('whiteList', 'White List Fleets Name (Only Names Below Will Be Choosen as Next Explorer)', settings.whiteList)).outerHTML;
+    div.innerHTML += addRow(addTextBox('fleetNames', 'Fleet Names (Fleet names thats includes of of this names will be explored - Seperate with `;` )', settings.goodNames.join(';'), 100)).outerHTML;
+    div.innerHTML += addRow(addTextBox('ignoreLetter', 'Ignore Symbol (Fleets with this symbol will be ignored)', settings.badLetter, 10)).outerHTML;
+    div.innerHTML += addRow(addSubmit()).outerHTML;
+
+    lastEle.parentElement.insertBefore(div, lastEle);
+    document.getElementById('exploreSubmit').addEventListener('click', updateSettings);
+}
+
+function addMenu(id, text) {
+    let div = document.createElement('div');
+    div.className = "margintop padding5 highlight bold centertext box";
+    div.id = id;
+    div.innerHTML = text;
+    return div;
+}
+
+function addCheckBox(id, header, checked) {
+    let div = addItem(header);
+    header = header.split(' ')[0];
+    div.innerHTML += `<input type="checkbox" class="checkbox" id="${id}" ${checked == 1 ? "checked" : ""}>`;
+    return div;
+}
+
+function addTextBox(id, header, data, big = 10) {
+    let div = addItem(header);
+    header = header.split(' ')[0];
+    div.innerHTML += `<input type="text" class="text" id="${id}" value="${data}" size="${big}" maxlength="${big}">`;
+    return div;
+}
+
+function addSubmit() {
+    let div = document.createElement('input');
+    div.type = "submit";
+    div.className = "darkbutton greenbutton width75";
+    div.value = "Modify";
+    div.id = "exploreSubmit";
+    return div;
+}
+
+function addRow(item) {
+    let div = document.createElement('div');
+    div.className = "tbborder padding5";
+    div.innerHTML = item.outerHTML;
+    return div;
+}
+function addItem(header) {
+    let div = document.createElement('div');
+    div.className = 'light padding5';
+    div.innerHTML = `${header}: `;
+    return div;
 }
 
 function loadSettings() {
+    let data = GM_getValue('auto-explore-settings');
+    if (!data)
+        return getSettings(fullAuto, autoSwitchToNextFleet, showEnemies, safeDistance, whiteList, fleetsName, abortletter, enemiesFactions)
+
+    var allData = data.split('&');
+
+    return getSettings(
+        allData[0] == 0 ? false : true,
+        allData[1] == 0 ? false : true,
+        allData[2] == 0 ? false : true,
+        allData[3],
+        allData[4] == 0 ? false : true,
+        allData[5].split(';'),
+        allData[6],
+        allData[7].split(';')
+    );
 }
 
-function saveSettings() {
+function updateSettings() {
+    let autoNext = document.getElementById('autoNext').checked;
+    let fullAuto = document.getElementById('fullAuto').checked;
+    let detectEnemies = document.getElementById('detectEnemies').checked;
+    let safeDistance = document.getElementById('safeDistance').value;
+    let whiteList = document.getElementById('whiteList').checked;
+    let fleetNames = document.getElementById('fleetNames').value;
+    let ignoreLetter = document.getElementById('ignoreLetter').value;
+    let enemiesFactions = document.getElementById('enemiesFactions').value;
+    console.log(enemiesFactions)
+
+    saveSettings(fullAuto, autoNext, detectEnemies, safeDistance, whiteList, fleetNames, ignoreLetter, enemiesFactions);
 }
 
-// End
+function saveSettings(full, next, alert, safe, white, gNames, bNames, eFactions) {
+    let data = getSettings(
+        full == false ? 0 : 1,
+        next == false ? 0 : 1,
+        alert == false ? 0 : 1,
+        safe,
+        white == false ? 0 : 1,
+        gNames,
+        bNames,
+        eFactions
+     );
 
-// Utilities Functions
-
-function sendAjaxRequest(type, link, async, withResponse, params) {
-    return new Promise(function (fulfill, reject){
-        var xhttp = new XMLHttpRequest();
-        xhttp.open(type, link , true);
-        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttp.send(params);
-
-        xhttp.onreadystatechange = function () {
-          if(xhttp.readyState === 4 && xhttp.status === 200) {
-              if (withResponse == true)
-                  fulfill(xhttp.responseText);
-              else
-                  fulfill();
-          }
-        };
-    });
+    let makestring = `${data.fullAuto}&${data.nextAuto}&${data.alertEnemies}&${data.safeDistance}&${data.whiteList}&${data.goodNames}&${data.badLetter}&${data.enemyFactions}`;
+    console.log(makestring);
+    GM_setValue('auto-explore-settings', makestring);
+    location.reload();
 }
 
-function divAjaxRequest(type, link, async, withResponse, params) {
-    return new Promise(function (fulfill, reject){
-        sendAjaxRequest(type, link, async, withResponse, params).then(function(html){
-            var div = document.createElement('div');
-            div.innerHTML = html;
-            fulfill(div);
-        });
-    });
+function getSettings(full, next, alert, safe, white, gNames, bNames, eFactions) {
+    return { fullAuto: full, nextAuto: next, alertEnemies: alert, safeDistance:safe, whiteList:white, goodNames: gNames, badLetter: bNames, enemyFactions: eFactions };
 }
 
-function createShuffleArray(num) {
-    var array = new Array(num).fill().map((d, i) => i + 0);
-    let counter = array.length;
-    while (counter > 0) {
-        let index = Math.floor(Math.random() * counter);
-        counter--;
-        let temp = array[counter];
-        array[counter] = array[index];
-        array[index] = temp;
-    }
-    return array;
-}
-
-// End Utilities Functions
-
-// End Utilities Functions
+// End Settings
