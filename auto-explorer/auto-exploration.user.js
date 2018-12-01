@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts
-// @version      3.0
+// @version      3.01
 // @description  Ease your exploration mission with automatic smart exploring logic for probing, in a single click
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -114,7 +114,7 @@ function pressExplore() {
 function nextFleet() {
     var allFleets = document.getElementsByClassName('padding5 inlineblock light box');
     if (settings.whiteList == false) {
-        window.location = allFleets[0].href + (fullAuto == true ? "#auto=1" : "");
+        window.location = allFleets[0].href + (settings.fullAuto == true ? "#auto=1" : "");
         return;
     }
 
@@ -124,7 +124,7 @@ function nextFleet() {
         if (exists >= 0) {
             if (allFleets[i].innerHTML.indexOf(settings.badletter) >= 0) continue;
 
-            window.location = allFleets[i].href + (fullAuto == true ? "#auto=1" : "");
+            window.location = allFleets[i].href + (settings.fullAuto == true ? "#auto=1" : "");
             return;
         }
     }
@@ -540,7 +540,6 @@ function updateSettings() {
     let fleetNames = document.getElementById('fleetNames').value;
     let ignoreLetter = document.getElementById('ignoreLetter').value;
     let enemiesFactions = document.getElementById('enemiesFactions').value;
-    console.log(enemiesFactions)
 
     saveSettings(fullAuto, autoNext, detectEnemies, safeDistance, whiteList, fleetNames, ignoreLetter, enemiesFactions);
 }
@@ -558,7 +557,6 @@ function saveSettings(full, next, alert, safe, white, gNames, bNames, eFactions)
      );
 
     let makestring = `${data.fullAuto}&${data.nextAuto}&${data.alertEnemies}&${data.safeDistance}&${data.whiteList}&${data.goodNames}&${data.badLetter}&${data.enemyFactions}`;
-    console.log(makestring);
     GM_setValue('auto-explore-settings', makestring);
     location.reload();
 }
