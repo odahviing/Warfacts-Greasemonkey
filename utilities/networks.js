@@ -4,7 +4,6 @@ function sendAjaxRequest(type, link, async, withResponse, params) {
         xhttp.open(type, link , true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttp.send(params);
-alert('herererer');
         xhttp.onreadystatechange = function () {
           if(xhttp.readyState === 4 && xhttp.status === 200) {
               if (withResponse == true)
