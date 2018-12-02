@@ -1,13 +1,12 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts
-// @version      3.01
+// @version      3.02
 // @description  Ease your exploration mission with automatic smart exploring logic for probing, in a single click
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
 // @match        http://www.war-facts.com/player.php
 // @exclude      http://www.war-facts.com/fleet.php?mtype*
-// @require      https://raw.githubusercontent.com/odahviing/warfacts-greasemonkey/master/utilities/networks.js
 // @grant        GM_getValue
 // @grant        GM_setValue
 // ==/UserScript==
@@ -566,3 +565,32 @@ function getSettings(full, next, alert, safe, white, gNames, bNames, eFactions) 
 }
 
 // End Settings
+
+// Utilities
+
+function sendAjaxRequest(type, link, async, withResponse, params) {
+    return new Promise(function (fulfill, reject){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open(type, link , true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send(params);
+        xhttp.onreadystatechange = function () {
+          if(xhttp.readyState === 4 && xhttp.status === 200) {
+              if (withResponse == true)
+                  fulfill(xhttp.responseText);
+              else
+                  fulfill();
+          }
+        };
+    });
+}
+
+function divAjaxRequest(type, link, async, withResponse, params) {
+    return new Promise(function (fulfill, reject){
+        sendAjaxRequest(type, link, async, withResponse, params).then(function(html){
+            var div = document.createElement('div');
+            div.innerHTML = html;
+            return fulfill(div);
+        });
+    });
+}
