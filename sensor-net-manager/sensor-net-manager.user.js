@@ -11,7 +11,8 @@
 
 // TODO:
 // -- Add Bookmark all option
-// -- Add Raw muiltiple fleets name + send
+// -- Add Raw muiltiple fleets name + send auto
+// -- Go to near planet options
 
 (function() {
     'use strict';
@@ -104,15 +105,16 @@ function verifyAll() {
         var allLines = document.getElementById('data-holder').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
         for (let i = 0; i < allLines.length; i++) {
             var allTds = allLines[i].getElementsByTagName('td');
-            let lineCord = allTds[1].innerHTML.split(', ');
+            let lineCord = allTds[2].innerHTML.split(', ');
             let theCords = Cords(lineCord[0],lineCord[1],lineCord[2]);
-            let exists = fleetList.findIndex(x => isEqual(x.Cords, theCords));
+            let exists = fleetList.findIndex(x => getDistance(x.Cords, theCords) < 1000000);
+
             if (exists == -1) {
                 allTds[4].innerHTML = 'Missing';
                 allTds[4].style.color = "red"
             }
             else {
-                allTds[4].innerHTML = allActive.findIndex(fleetList[exists].Id) >= 0 ? 'Listening' : 'In-Place';
+                allTds[4].innerHTML = allActive.findIndex(x => x == fleetList[exists].Id) >= 0 ? 'Listening' : 'In-Place';
                 allTds[5].value = fleetList[exists].Id;
             }
         }
@@ -129,8 +131,9 @@ function getFleetList() {
                 if (allRows[i].innerHTML.indexOf('Single Vessels') >= 0) break;
                 var allAs = allRows[i].getElementsByTagName('a');
                 let fleetId = allAs[0].href.substring(allAs[0].href.indexOf('?') + 7);
-                let cordsObj = allAs[1].innerHTML.split('');
-                fleetLists.push(Fleet(fleetId, Cords(cordsObj[0],cordsObj[1],cordsObj[2]), false));
+                let cordsObj = allAs[1].innerHTML.split(' ');
+                if (isNaN(cordsObj[0].replace(',','')) == true) continue;
+                fleetLists.push(Fleet(fleetId, Cords(cordsObj[0].replace(',',''),cordsObj[1].replace(',',''),cordsObj[2].replace(',','')), false));
             }
             return fulfill(fleetLists);
         });
@@ -206,7 +209,6 @@ function generateRows(cords, x, y, count, topRange, scanPoints) {
 
 
 function buildRow(cords, range, topRange, baseCords) {
-    console.log(cords);
     var thisLists = [];
 
     // Right, Left, Top, Bottom
