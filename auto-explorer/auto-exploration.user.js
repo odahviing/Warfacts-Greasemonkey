@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto Exploration
 // @namespace    github.com/odahviing/warfacts
-// @version      3.02
+// @version      3.03
 // @description  Ease your exploration mission with automatic smart exploring logic for probing, in a single click
 // @author       Odahviing
 // @match        http://www.war-facts.com/fleet*
@@ -46,7 +46,7 @@ var fullAuto = false;
 var safeDistance = 5000000; // If the system is 2m km from the fleet range, we won't go there (need to fix the math a-bit)
 var whiteList = false;
 var fleetsName = [];
-var abortletter = ['#'];
+var abortletter = '#';
 var showEnemies = true;
 var enemiesFactions = ['Jarnekk','Scaldarians'];
 var minimumFuelAmount = 50000000; // Will go fuel if below
@@ -121,7 +121,7 @@ function nextFleet() {
     {
         let exists = settings.goodNames.findIndex(x => allFleets[i].innerHTML.indexOf(x) >= 0);
         if (exists >= 0) {
-            if (allFleets[i].innerHTML.indexOf(settings.badletter) >= 0) continue;
+            if (allFleets[i].innerHTML.indexOf(settings.badLetter) >= 0) continue;
 
             window.location = allFleets[i].href + (settings.fullAuto == true ? "#auto=1" : "");
             return;
@@ -456,10 +456,10 @@ function buildMenu() {
     div.innerHTML += addRow(addCheckBox('autoNext', 'Auto Choose Next Free Explorer', settings.nextAuto)).outerHTML;
     div.innerHTML += addRow(addCheckBox('fullAuto', 'Auto Send Probes to Exploration (Warning - Might not be allowed - Requires AutoNext)', settings.fullAuto)).outerHTML;
     div.innerHTML += addRow(addCheckBox('detectEnemies', 'Alert When Detect Enemies (Message Box)', settings.alertEnemies)).outerHTML;
-    div.innerHTML += addRow(addTextBox('enemiesFactions', 'Add Enemies Factions (Fleets from this factions will be alerted - Seperate with `;` )', settings.enemyFactions.join(';'), 100)).outerHTML;
+    div.innerHTML += addRow(addTextBox('enemiesFactions', 'Add Enemies Factions (Fleets from this factions will be alerted (`;` between words))', settings.enemyFactions.join(';'), 100)).outerHTML;
     div.innerHTML += addRow(addTextBox('safeDistance', 'Safe Distance (km - Reduce Destination Range)', settings.safeDistance)).outerHTML;
     div.innerHTML += addRow(addCheckBox('whiteList', 'White List Fleets Name (Only Names Below Will Be Choosen as Next Explorer)', settings.whiteList)).outerHTML;
-    div.innerHTML += addRow(addTextBox('fleetNames', 'Fleet Names (Fleet names thats includes of of this names will be explored - Seperate with `;` )', settings.goodNames.join(';'), 100)).outerHTML;
+    div.innerHTML += addRow(addTextBox('fleetNames', 'Allowed Fleet Names (Fleet thats includes one of this words will be choosed (`;` between words))', settings.goodNames.join(';'), 100)).outerHTML;
     div.innerHTML += addRow(addTextBox('ignoreLetter', 'Ignore Symbol (Fleets with this symbol will be ignored)', settings.badLetter, 10)).outerHTML;
     div.innerHTML += addRow(addSubmit()).outerHTML;
 
